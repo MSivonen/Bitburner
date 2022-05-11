@@ -1,0 +1,8 @@
+{
+    "bitburner.fileWatcher.enable": true,
+    "bitburner.authToken": "Pi3PW+ETj83T6mozCizn6yVyswh9bS9t1qgyOUJIzcHue6h7QWgQfeF2q6BLdlH4",
+    "css.format.spaceAroundSelectorSeparator": true,
+    "bitburner.scriptRoot": "/.vsCode/",
+    "bitburner.showFileWatcherEnabledNotification": true,
+    "bitburner.showPushSuccessNotification": true
+}
