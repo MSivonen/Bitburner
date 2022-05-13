@@ -1,0 +1,54 @@
+{
+	"files": [
+		{
+			"path": ".vsCode/ver6/ver6.js",
+			"bookmarks": [
+				{
+					"line": 17,
+					"column": 30,
+					"label": "main(ns)"
+				},
+				{
+					"line": 51,
+					"column": 54,
+					"label": "--MAIN LOOP--"
+				},
+				{
+					"line": 75,
+					"column": 10,
+					"label": "updateServers()"
+				},
+				{
+					"line": 99,
+					"column": 32,
+					"label": "initializeTarget(targ)"
+				},
+				{
+					"line": 147,
+					"column": 22,
+					"label": "badger(targ)"
+				},
+				{
+					"line": 197,
+					"column": 51,
+					"label": "getTargetObject(targetServ, numCores = 1)"
+				},
+				{
+					"line": 263,
+					"column": 83,
+					"label": "buyServers(moneyToSpend = 2, maxRam = ns.getPurchasedServerMaxRam()"
+				},
+				{
+					"line": 316,
+					"column": 22,
+					"label": "pickTarget()"
+				},
+				{
+					"line": 333,
+					"column": 39,
+					"label": "openPorts2(ns, servers)"
+				}
+			]
+		}
+	]
+}

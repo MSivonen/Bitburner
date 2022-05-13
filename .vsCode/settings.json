@@ -4,5 +4,6 @@
     "css.format.spaceAroundSelectorSeparator": true,
     "bitburner.scriptRoot": "/.vsCode/",
     "bitburner.showFileWatcherEnabledNotification": true,
-    "bitburner.showPushSuccessNotification": true
+    "bitburner.showPushSuccessNotification": true,
+    "bookmarks.label.suggestion": "suggestWhenSelected"
 }

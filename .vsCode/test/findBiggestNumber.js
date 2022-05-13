@@ -39,13 +39,13 @@ export function main(ns, serv) {
         newMoney = (serverObject.moneyAvailable + threads) * serverGrowth;
         if (!foundBiggest && newMoney < serverObject.moneyMax) maxGuess *= 16; else foundBiggest = true; //first find a too big number
         if (newMoney >= serverObject.moneyMax) { //if too much threads, set maxGuess to this and lower the guess
-            maxGuess = threads;
+            maxGuess = threads - 1;
             threads = Math.ceil(minGuess + (maxGuess - minGuess) / 2);
         } else {//if not enough threads, set minGuess to this and raise the guess
-            minGuess = threads;
+            minGuess = threads + 1;
             threads = Math.ceil(minGuess + (maxGuess - minGuess) / 2);
         }
-        minGuess = minGuess + 1 == maxGuess ? maxGuess : minGuess; //offset 1 to make it work
+       // minGuess = minGuess + 1 == maxGuess ? maxGuess : minGuess; //offset 1 to make it work
         ns.tprint("Server: " + serv + ", Guess: " + ns.nFormat(newMoney, "0.000a") + ", maxMoney: " + ns.nFormat(serverObject.moneyMax, "0.000a") + ", threads: " + threads + " iterations: " + iter);
     }
     return threads;

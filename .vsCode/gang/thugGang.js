@@ -31,8 +31,8 @@ import { printArray } from "/lib/includes.js"
 export async function main(ns) {
 	let maxWantedPenalty = 0.9;
 	let trainings = ["Train Combat", "Train Combat", "Train Hacking", "Train Charisma"];
-	let crimes = ["Mug People", "Deal Drugs", "Strongarm Civilians", "Run a Con", "Armed Robbery", "Traffick Illegal Arms", "Threaten & Blackmail", "Human Trafficking", "Terrorism", "Territory Warfare"];
-	let niceThings = ["Vigilante Justice"];
+	let crimes = ["Mug People", "Deal Drugs", "Strongarm Civilians", "Run a Con", "Armed Robbery", "Traffick Illegal Arms", "Threaten & Blackmail", "Human Trafficking", "Terrorism"];
+	let niceThings = ["Vigilante Justice", "Vigilante Justice"]; //two of these, because of random selection
 
 	let wanted = 0;
 	ns.clearLog();
@@ -86,14 +86,21 @@ export async function main(ns) {
 				if (this.prevChange < ns.getTimeSinceLastAug()) {
 					let tempTask = randomInt(2);
 					this.task = trainings[tempTask];
+					ns.print(this.name + " is training " + this.task);
 					this.prevChange = ns.getTimeSinceLastAug() + 10000;
-
+				}
+			} else if (ns.gang.getMemberInformation(this.name).str > 20
+				&& (ns.getTimeSinceLastAug() % 100000 > 10000 + this.startTime && ns.getTimeSinceLastAug() % 100000 < 20000 + this.startTime)) { //do terr warf
+				if (!ns.gang.getGangInformation().territoryWarfareEngaged && this.prevChange < ns.getTimeSinceLastAug()) {
+					this.task = "Territory Warfare";
+					ns.print(this.name + " is doing " + this.task);
+					this.prevChange = ns.getTimeSinceLastAug() + 20000;
 				}
 			} else {
 				if (wanted && this.prevChange < ns.getTimeSinceLastAug()) {
 					this.task = niceThings[randomInt(niceThings.length - 1)];
 					this.prevChange = 5000 + this.startTime + ns.getTimeSinceLastAug();
-
+					ns.print(this.name + " is doing " + this.task);
 				} else if (!wanted && this.prevChange < ns.getTimeSinceLastAug()) {
 					let tempTask = Math.round(ns.gang.getMemberInformation(this.name).str / 35);
 					tempTask = Math.min(tempTask, crimes.length - 1);
@@ -102,6 +109,7 @@ export async function main(ns) {
 						tempTask = tempTask - 2 + randomInt(2);
 						this.task = crimes[tempTask];
 					}
+					ns.print(this.name + " is doing crime: " + this.task);
 					this.prevChange = 5000 + this.startTime + ns.getTimeSinceLastAug();
 				}
 			}

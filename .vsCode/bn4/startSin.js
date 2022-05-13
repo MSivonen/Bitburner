@@ -19,10 +19,12 @@ import { connecter } from "/lib/includes.js"
 `
 
 /** @param {NS} ns */
+/** @param {import("../.").NS} ns */
 export async function main(ns) {
 	/**Path for dynamic scripts */
+	const wantAugsInstalled = false;
 	const path = "/bn4/dynScripts/"
-	const wantGang = false;
+	const wantGang = true;
 	ns.tail();
 	let paused = false,
 		doc = globalThis["document"];
@@ -45,7 +47,7 @@ export async function main(ns) {
 	const sin = eval("ns.singularity");
 	let servers = getServersWithRam(ns);
 	if (wantGang) ns.exec("/gang/thugGang.js", "home");
-	ns.exec("/ver4/ver4Start.js", "home");
+	ns.exec("/ver6/ver6.js", "home");
 	let boughtAug = false;
 	let prevJobTime = ns.getTimeSinceLastAug() - 5000;
 	let timer = 0;
@@ -128,6 +130,7 @@ export async function main(ns) {
 
 
 	function getBestFaction() {	//find the aug that needs the least rep to get
+		let gangFact = ns.gang.getGangInformation().faction;
 		let bestAugOfEachFaction = [];
 		let wantedAugs = [
 			"company_rep_mult",
@@ -135,6 +138,7 @@ export async function main(ns) {
 			"hacki"
 		];
 		for (let fact of ns.getPlayer().factions) {
+			if (fact == gangFact) continue;
 			let bestAug = {
 				repNeeded: 99e99
 			}
@@ -229,7 +233,7 @@ export async function main(ns) {
 			if (fact == "Daedalus") daedalus = true;
 		}
 		if (!redPill && daedalus && !sin.isBusy()) ns.singularity.workForFaction("Daedalus", "Hacking contracts", false);
-		else if ((wantGang && (boughtAug || !ns.gang.inGang()) && !sin.isBusy())) murder();
+		else if ((wantGang && (!ns.gang.inGang()) && !sin.isBusy())) murder();
 		else if (ns.getPlayer().factions.length != 0 && (!wantGang || ns.gang.inGang()) && prevJobTime + 5000 < ns.getTimeSinceLastAug()) {
 			prevJobTime = ns.getTimeSinceLastAug();
 			let bestFact = getBestFaction();
@@ -274,11 +278,13 @@ export async function main(ns) {
 					}
 			}
 		}
-		if (boughtAug && timer + timeToWaitForAugs < ns.getTimeSinceLastAug())
-			ns.exec("/bn4/restart.js", "home");
-		if (boughtAug) ns.print("Restarting in " + Math.floor((timer + timeToWaitForAugs - ns.getTimeSinceLastAug()) / 1000) + "s");
-		if (boughtAug && ns.isRunning("/gang/thugGang.js", "home")) ns.kill("/gang/thugGang.js", "home");
-		if (boughtAug && ns.isRunning("/lib/purchaseServers.js", "home")) ns.kill("/lib/purchaseServers.js", "home");
+		if (wantAugsInstalled) {
+			if (boughtAug && timer + timeToWaitForAugs < ns.getTimeSinceLastAug())
+				ns.exec("/bn4/restart.js", "home");
+			if (boughtAug) ns.print("Restarting in " + Math.floor((timer + timeToWaitForAugs - ns.getTimeSinceLastAug()) / 1000) + "s");
+			if (boughtAug && ns.isRunning("/gang/thugGang.js", "home")) ns.kill("/gang/thugGang.js", "home");
+			if (boughtAug && ns.isRunning("/lib/purchaseServers.js", "home")) ns.kill("/lib/purchaseServers.js", "home");
+		}
 	}
 
 	/* 	async function backdoors() {

@@ -41,7 +41,7 @@ export async function main(ns, homeReservedRam = 32) {
 	var startTime = ns.getTimeSinceLastAug();
 	var runningScripts = [];
 	var allServers = getServers(ns);
-	var targets = ["n00dles"];//, "joesguns"];// getServersWithMoney(ns);
+	var targets = ["neo-net"];//["joesguns"];//["n00dles"];//["phantasy"];//, "joesguns"];// getServersWithMoney(ns);
 	//var targets = getServersWithMoney(ns);
 	var validTargetObjects = [];
 	var growTargets = [];
@@ -277,11 +277,8 @@ export async function main(ns, homeReservedRam = 32) {
 		}
 
 		let memBar = "[";
-		for (let i = 0; i < 15; i++) {
-			if (perce * 0.15 <= i) memBar += "|";
-		}
-		for (let i = 0; i < 15; i++) {
-			if (perce * 0.15 > i) memBar += "-";
+		for (let i = 14; i >= 0; i--) {
+			memBar += perce * 0.15 <= i ? "|" : "-";
 		}
 		memBar += "]";
 
