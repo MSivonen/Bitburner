@@ -9,44 +9,134 @@
 					"label": "main(ns)"
 				},
 				{
-					"line": 51,
-					"column": 54,
-					"label": "--MAIN LOOP--"
+					"line": 62,
+					"column": 52,
+					"label": "MAIN LOOP"
 				},
 				{
-					"line": 75,
+					"line": 101,
+					"column": 21,
+					"label": "updateTail()"
+				},
+				{
+					"line": 127,
 					"column": 10,
 					"label": "updateServers()"
 				},
 				{
-					"line": 99,
+					"line": 163,
 					"column": 32,
 					"label": "initializeTarget(targ)"
 				},
 				{
-					"line": 147,
+					"line": 222,
 					"column": 22,
 					"label": "badger(targ)"
 				},
 				{
-					"line": 197,
+					"line": 270,
 					"column": 51,
 					"label": "getTargetObject(targetServ, numCores = 1)"
 				},
 				{
-					"line": 263,
+					"line": 339,
 					"column": 83,
 					"label": "buyServers(moneyToSpend = 2, maxRam = ns.getPurchasedServerMaxRam()"
 				},
 				{
-					"line": 316,
+					"line": 390,
 					"column": 22,
 					"label": "pickTarget()"
 				},
 				{
-					"line": 333,
+					"line": 409,
 					"column": 39,
 					"label": "openPorts2(ns, servers)"
+				}
+			]
+		},
+		{
+			"path": ".vsCode/bn4/startSin.js",
+			"bookmarks": [
+				{
+					"line": 22,
+					"column": 30,
+					"label": "main(ns)"
+				},
+				{
+					"line": 68,
+					"column": 19,
+					"label": "dynFunctions"
+				},
+				{
+					"line": 129,
+					"column": 13,
+					"label": "Main loop"
+				},
+				{
+					"line": 147,
+					"column": 20,
+					"label": "updateTail()"
+				},
+				{
+					"line": 168,
+					"column": 19,
+					"label": "sleeves()"
+				},
+				{
+					"line": 264,
+					"column": 26,
+					"label": "getBestFaction()"
+				},
+				{
+					"line": 350,
+					"column": 23,
+					"label": "runFunc(func)"
+				},
+				{
+					"line": 360,
+					"column": 33,
+					"label": "writeScript(func)"
+				},
+				{
+					"line": 368,
+					"column": 22,
+					"label": "idle()"
+				},
+				{
+					"line": 395,
+					"column": 27,
+					"label": "copyProgs()"
+				},
+				{
+					"line": 403,
+					"column": 21,
+					"label": "startGang()"
+				},
+				{
+					"line": 411,
+					"column": 19,
+					"label": "getAugs()"
+				},
+				{
+					"line": 458,
+					"column": 22,
+					"label": "buyDarkweb()"
+				},
+				{
+					"line": 490,
+					"column": 18,
+					"label": "murder()"
+				},
+				{
+					"line": 508,
+					"column": 27,
+					"label": "doHacking()"
+				},
+				{
+					"line": 522,
+					"column": 25,
+					"label": "connecter(targ)"
 				}
 			]
 		}

@@ -44,11 +44,12 @@ export async function main(ns) {
 		CyberSec: "CyberSec",
 		Bladeburners: "Bladeburners",
 		ChurchOfTheMachineGod: "Church of the Machine God",
-		ShadowsOfAnarchy: "Shadows of Anarchy",
+		//ShadowsOfAnarchy: "Shadows of Anarchy",
 	}
 
 	for (let fact of Object.values(factions)) {
-		//ns.tprint(fact);
+		ns.tprint(fact);
+		printArray(ns, ns.singularity.getAugmentationStats(...ns.singularity.getAugmentationsFromFaction(fact)));
 		for (let aug of ns.singularity.getAugmentationsFromFaction(fact)) {
 			if (Object.keys(ns.singularity.getAugmentationStats(aug)).length == 0) ns.tprint(aug);
 		}

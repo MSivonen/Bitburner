@@ -45,12 +45,12 @@ export async function openPorts2(ns, servers) {
 	if (hacked == servers.length) allHacked = true;
 }
 
-export async function readFromJSON(filename = "/test/jsontest.txt") {
+export async function readFromJSON(ns, filename = "/test/jsontest.txt") {
 	let readed = await ns.read(filename);
 	return JSON.parse(readed);
 }
 
-export async function writeToJSON(jsonObject, filename = "/test/jsontest.txt") {
+export async function writeToJSON(ns, jsonObject, filename = "/test/jsontest.txt") {
 	let toWrite = JSON.stringify(jsonObject);
 	await ns.write(filename, toWrite, "w");
 }
@@ -95,12 +95,12 @@ export function printArray(ns, thisArray, log = "terminal") {
 		ns.tprint("Tried to print something that's not an iterable or a object");
 	} else if (thisArray[Symbol.iterator]) {
 		for (const value of thisArray) {
-			if (log != "log") ns.tprint(value);
+			if (log != "tail") ns.tprint(value);
 			else ns.print(value);
 		}
 	} else {
 		for (const [key, value] of Object.entries(thisArray)) {
-			if (log != "log") ns.tprint(`${key}: ${value}`);
+			if (log != "tail") ns.tprint(`${key}: ${value}`);
 			else ns.print(`${key}: ${value}`);
 		}
 	}

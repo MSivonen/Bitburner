@@ -6,6 +6,7 @@ export async function main(ns) {
 		if (!ns.singularity.isBusy()) {
 			if (ns.getPlayer().strength >= 80) ns.singularity.commitCrime("Homicide");
 			if (ns.getPlayer().strength < 80) ns.singularity.commitCrime("Mug Someone");
+			ns.print("Karma: " + ns.heart.break());
 		}
 		await ns.sleep(10);
 	}
