@@ -126,5 +126,7 @@ export async function main(ns) {
 			ns.print("ERROR: Update Skipped: " + String(err));
 		}
 		await ns.sleep(150);
+		ns.atExit(() => { hook0.innerHTML = ""; hook1.innerHTML = ""; });
 	}
+
 }

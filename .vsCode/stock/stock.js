@@ -21,7 +21,7 @@ export async function main(ns) {
 		stockObjects.push(tempObject);
 	}
 	objectArraySort(ns, stockObjects, "forecast", "big");
-	printArray(ns, stockObjects);
+	//printArray(ns, stockObjects);
 
 	while (true) {
 		for (let sto of stockObjects) {
@@ -48,7 +48,7 @@ export async function main(ns) {
 			}
 		}
 		ns.clearLog();
-		printArray(ns, owned, "log");
+		//printArray(ns, owned, "log");
 		await ns.sleep(1000);
 	}
 }

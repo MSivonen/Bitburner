@@ -28,13 +28,21 @@ import { printArray } from "/lib/includes.js"
 
 
 /** @param {NS} ns */
+/** @param {import('../.').NS} ns */
 export async function main(ns) {
+	while (!ns.gang.inGang()) {
+		if (ns.gang.createGang("Slum Snakes")) break;
+		await ns.sleep(1000);
+		ns.tprint("Not in gang. Waiting...");
+	}
+
 	let maxWantedPenalty = 0.9;
 	let trainings = ["Train Combat", "Train Combat", "Train Hacking", "Train Charisma"];
 	let crimes = ["Mug People", "Deal Drugs", "Strongarm Civilians", "Run a Con", "Armed Robbery", "Traffick Illegal Arms", "Threaten & Blackmail", "Human Trafficking", "Terrorism"];
-	let niceThings = ["Vigilante Justice", "Vigilante Justice"]; //two of these, because of random selection
-
+	let niceThings = ["Vigilante Justice", "Vigilante Justice"]; //two of these, because of random selection and I'm lazy
+	let prevPurchaseTime = ns.getTimeSinceLastAug() + 120000;
 	let wanted = 0;
+	let warFareTimer = { temp: ns.gang.getOtherGangInformation().Tetrads.power, detected: 0 };
 	ns.clearLog();
 	class Member {
 		constructor(name, role = "empty", startTime = randomInt(5000)) {
@@ -79,49 +87,63 @@ export async function main(ns) {
 		}
 
 		setTask() {
-			wanted = ns.gang.getGangInformation().wantedPenalty < maxWantedPenalty ? 1 : wanted;
-			wanted = ns.gang.getGangInformation().wantedPenalty > 0.95 ? 0 : wanted;
-			wanted = ns.gang.getGangInformation().wantedLevel < 2 ? 0 : wanted;
-			if (ns.gang.getMemberInformation(this.name).str < 20 || ns.getTimeSinceLastAug() % 100000 < 10000 + this.startTime) { //do training
-				if (this.prevChange < ns.getTimeSinceLastAug()) {
-					let tempTask = randomInt(2);
-					this.task = trainings[tempTask];
-					ns.print(this.name + " is training " + this.task);
-					this.prevChange = ns.getTimeSinceLastAug() + 10000;
-				}
-			} else if (ns.gang.getMemberInformation(this.name).str > 20
-				&& (ns.getTimeSinceLastAug() % 100000 > 10000 + this.startTime && ns.getTimeSinceLastAug() % 100000 < 20000 + this.startTime)) { //do terr warf
-				if (!ns.gang.getGangInformation().territoryWarfareEngaged && this.prevChange < ns.getTimeSinceLastAug()) {
-					this.task = "Territory Warfare";
-					ns.print(this.name + " is doing " + this.task);
-					this.prevChange = ns.getTimeSinceLastAug() + 20000;
-				}
-			} else {
-				if (wanted && this.prevChange < ns.getTimeSinceLastAug()) {
-					this.task = niceThings[randomInt(niceThings.length - 1)];
-					this.prevChange = 5000 + this.startTime + ns.getTimeSinceLastAug();
-					ns.print(this.name + " is doing " + this.task);
-				} else if (!wanted && this.prevChange < ns.getTimeSinceLastAug()) {
-					let tempTask = Math.round(ns.gang.getMemberInformation(this.name).str / 35);
-					tempTask = Math.min(tempTask, crimes.length - 1);
-					if (tempTask < 2) this.task = trainings[randomInt(2)];
-					else {
-						tempTask = tempTask - 2 + randomInt(2);
-						this.task = crimes[tempTask];
+
+			if (warFareTimer.detected != 0 &&
+				(ns.getTimeSinceLastAug() - warFareTimer.detected) % 20000 > 19750 ||
+				(ns.getTimeSinceLastAug() - warFareTimer.detected) % 20000 < 250) {
+				this.task = "Territory Warfare";
+				ns.print(this.name + " is doing " + this.task);
+			}
+			else {
+				wanted = ns.gang.getGangInformation().wantedPenalty < maxWantedPenalty ? 1 : wanted;
+				wanted = ns.gang.getGangInformation().wantedPenalty > 0.95 ? 0 : wanted;
+				wanted = ns.gang.getGangInformation().wantedLevel < 2 ? 0 : wanted;
+				if (ns.gang.getMemberInformation(this.name).str < 20 || ns.getTimeSinceLastAug() % 100000 < 10000 + this.startTime) { //do training
+					if (this.prevChange < ns.getTimeSinceLastAug()) {
+						let tempTask = randomInt(2);
+						this.task = trainings[tempTask];
+						ns.print(this.name + " is training " + this.task);
+						this.prevChange = ns.getTimeSinceLastAug() + 10000;
 					}
-					ns.print(this.name + " is doing crime: " + this.task);
-					this.prevChange = 5000 + this.startTime + ns.getTimeSinceLastAug();
+				}
+				/*else if (ns.gang.getMemberInformation(this.name).str > 20
+					&& (ns.getTimeSinceLastAug() % 100000 > 10000 + this.startTime && ns.getTimeSinceLastAug() % 100000 < 20000 + this.startTime)) { //do terr warf
+					if (!ns.gang.getGangInformation().territoryWarfareEngaged && this.prevChange < ns.getTimeSinceLastAug()) {
+						this.task = "Territory Warfare";
+						ns.print(this.name + " is doing " + this.task);
+						this.prevChange = ns.getTimeSinceLastAug() + 20000;
+					}
+				}*/
+				else {
+					if (wanted && this.prevChange < ns.getTimeSinceLastAug()) {
+						this.task = niceThings[randomInt(niceThings.length - 1)];
+						this.prevChange = 5000 + this.startTime + ns.getTimeSinceLastAug();
+						ns.print(this.name + " is doing " + this.task);
+					} else if (!wanted && this.prevChange < ns.getTimeSinceLastAug()) {
+						let tempTask = Math.round(ns.gang.getMemberInformation(this.name).str / 35);
+						tempTask = Math.min(tempTask, crimes.length - 1);
+						if (tempTask < 2) this.task = trainings[randomInt(2)];
+						else {
+							tempTask = tempTask - 2 + randomInt(2);
+							this.task = crimes[tempTask];
+						}
+						ns.print(this.name + " is doing crime: " + this.task);
+						this.prevChange = 5000 + this.startTime + ns.getTimeSinceLastAug();
+					}
 				}
 			}
 			ns.gang.setMemberTask(this.name, this.task);
 		}
 
 		buyItems() {
-			for (let equ of this.getWantedItems()) {
-				if (ns.getServerMoneyAvailable("home") > ns.gang.getEquipmentCost(equ)) {
-					ns.gang.purchaseEquipment(this.name, equ);
-					ns.print("Bought " + equ + " for " + this.name + ".");
+			if (prevPurchaseTime < ns.getTimeSinceLastAug()) {
+				for (let equ of this.getWantedItems()) {
+					if (ns.getServerMoneyAvailable("home") > ns.gang.getEquipmentCost(equ)) {
+						ns.gang.purchaseEquipment(this.name, equ);
+						ns.print("Bought " + equ + " for " + this.name + ".");
+					}
 				}
+				prevPurchaseTime = ns.getTimeSinceLastAug();
 			}
 		}
 
@@ -177,12 +199,24 @@ export async function main(ns) {
 		}
 		allEquipmentsOA.push(tempEquipment);
 	}
-	//printArray(ns, allEquipmentsOA);
 
 
 	//======================================================================MAIN LOOP======================================================================
 	//======================================================================MAIN LOOP======================================================================
 	while (true) {
+		for (const guy of memberNames)
+			if (!members.find(member => member.name == guy)) {
+				ns.tprint("Lookie lookie I founded it!");
+			}
+
+
+		if (warFareTimer.detected == 0) {
+			if (warFareTimer.temp != ns.gang.getOtherGangInformation().Tetrads.power) {
+				warFareTimer.detected = ns.getTimeSinceLastAug();
+			}
+			else warFareTimer.temp = ns.gang.getOtherGangInformation().Tetrads.power;
+		}
+
 		if (ns.gang.canRecruitMember()) {
 			memberNames.push(randomName());
 			ns.gang.recruitMember(memberNames[memberNames.length - 1]);

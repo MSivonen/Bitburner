@@ -12,6 +12,97 @@
 //import { readFromJSON } from "/lib/includes.js"
 //import { writeToJSON } from "/lib/includes.js"
 //import { openPorts2 } from "/lib/includes.js"
+//import { getBestFaction } from "/lib/includes.js"
+
+export function getBestFaction(ns, excluded = [], wantHackNet = true) {	//find the aug that needs the least rep to get
+	const gangFact = ns.gang.inGang() ? ns.gang.getGangInformation().faction : null;
+	let bestAugOfEachFaction = [];
+	let wantedAugs = [
+		"company_rep_mult",
+		"faction_rep_mult",
+		"hacki"
+	];
+	const gangAugs = [
+		"strength",
+		"defense",
+		"dexterity",
+		"agility"
+	],
+		hackNetAugs = [
+			"hacknet"
+		];
+
+	if (!ns.gang.inGang()) wantedAugs.push(...gangAugs);
+	if (wantHackNet) wantedAugs.push(...hackNetAugs);
+
+	for (let fact of ns.getPlayer().factions) {
+		if (fact == gangFact || excluded.includes(fact)) continue;
+		let bestAug = {
+			repNeeded: 99e99
+		}
+		let augs = ns.singularity.getAugmentationsFromFaction(fact);
+
+		//if (ns.sleeve.getInformation(i).jobs)
+		for (let aug of augs) {
+			let thisAug = {
+				faction: fact,
+				currentRep: ns.singularity.getFactionRep(fact),
+				currentFav: ns.singularity.getFactionFavor(fact),
+				name: aug,
+				repCost: ns.singularity.getAugmentationRepReq(aug),
+				owned: false,
+				dontBuy: true,
+				repNeeded: 0
+			}
+			thisAug.repNeeded = (thisAug.repCost - thisAug.currentRep) / ((thisAug.currentFav + 100) / 100); //rep needed for cheapest aug
+			for (let text of Object.keys(ns.singularity.getAugmentationStats(aug))) {//get aug stat names
+				for (let want of wantedAugs) {
+					if (text.startsWith(want)) {
+						thisAug.dontBuy = false;
+					}
+				}
+			}
+			if (thisAug.name == "Neuroreceptor Management Implant"
+				|| thisAug.name == "The Red Pill"
+				|| thisAug.name == "CashRoot Starter Kit") thisAug.dontBuy = false;
+			if (thisAug.name.startsWith("Neuroflux")) thisAug.dontBuy = true;
+			/* all augs without stats:
+				that.js: The Red Pill
+				that.js: CashRoot Starter Kit
+				that.js: Neuroreceptor Management Implant
+				that.js: The Red Pill
+				that.js: The Blade's Simulacrum
+				that.js: SoA - phyzical WKS harmonizer
+				that.js: SoA - Might of Ares
+				that.js: SoA - Wisdom of Athena
+				that.js: SoA - Chaos of Dionysus
+				that.js: SoA - Beauty of Aphrodite
+				that.js: SoA - Trickery of Hermes
+				that.js: SoA - Flood of Poseidon
+				that.js: SoA - Hunt of Artemis
+				that.js: SoA - Knowledge of Apollo
+			*/
+			for (let myAug of ns.singularity.getOwnedAugmentations(true)) {	//true = include purchsed but not installed augs
+				if (aug == myAug) thisAug.owned = true;
+			}
+			if (thisAug.owned) thisAug.dontBuy = true; //exclude owned augs
+			if (thisAug.repNeeded <= bestAug.repNeeded && thisAug.repNeeded > 0 && !thisAug.dontBuy) bestAug = thisAug;
+		}
+		bestAugOfEachFaction.push(bestAug);	//push the best aug of this faction
+	}
+	let bestScore = 99e99;
+	let bestOfBest = {
+		error: true
+	};
+	for (let aug of bestAugOfEachFaction) {
+		if (aug.repNeeded < bestScore) { //find the best faction
+			bestScore = aug.repNeeded;
+			bestOfBest = aug;
+		}
+	}
+	if (bestOfBest.error) return ("Nope");
+	return ({ faction: bestOfBest.faction, aug: bestOfBest.name }); //return faction name and aug name
+}
 
 export async function openPorts2(ns, servers) {
 	let hacked = 0;

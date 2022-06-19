@@ -1,25 +1,26 @@
-import { readFromJSON } from "/lib/includes"
-import { printArray } from "/lib/includes.js"
-import { openPorts } from "/lib/includes.js"
-import { objectArraySort } from "/lib/includes.js"
-import { getServers } from "/lib/includes.js"
-import { getServersWithRam } from "/lib/includes.js"
-import { getServersWithMoney } from "/lib/includes.js"
-//import { secondsToHMS } from "/lib/includes.js"
-//import { killAllButThis } from "/lib/includes.js"
-//import { connecter } from "/lib/includes.js"
-import { randomInt } from "/lib/includes.js"
-import { map } from "/lib/includes.js"
-//import { readFromJSON } from "/lib/includes.js"
-//import { writeToJSON } from "/lib/includes.js"
+import {
+	printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,
+	secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, openPorts2, getBestFaction
+}
+	from "/lib/includes.js"
 
 /** @param {NS} ns */
 /** @param {import("../.").NS} ns */
 export async function main(ns) {
+	const hackSingleTarget = false,
+		maxTargets = 15,
+		saveMoneyAfterPserv = 3,
+		ramNeededForMoreTargets = 10000,
+		batchInterval = 300,
+		shareServers = ns.gang.inGang() ? 7 : 0,
+		useHashes = false;
+
+
 	ns.disableLog("ALL");
 	ns.tail();
 	ns.clearLog();
-	let target,
+	let singleTarget = "n00dles",
+		target,
 		targetsA = [],
 		prevTarget,
 		allServers = getServers(ns),
@@ -28,14 +29,14 @@ export async function main(ns) {
 		allHacked = false,
 		prevTime = ns.getTimeSinceLastAug(),
 		moneyToSteal = 0.05,
-		homeCores = 1,//ns.getServer("home").cpuCores;
+		homeCores = ns.getServer("home").cpuCores,
 		serversOA = [],
 		initQRunningOA = [],
 		batchDebug = false,
 		numberOfTargets = 1,
 		logA = [],
 		logTargetOA = [],
-		logServersA = [];
+		logServersA = []; ns.weakenAnalyze
 
 	const hackFile = "/ver6/hack6.js",
 		growFile = "/ver6/grow6.js",
@@ -43,12 +44,7 @@ export async function main(ns) {
 		allFiles = [weakFile, hackFile, growFile],
 		weakRam = ns.getScriptRam(weakFile),
 		growRam = ns.getScriptRam(growFile),
-		hackRam = ns.getScriptRam(hackFile),
-		batchInterval = 100,
-		shareServers = ns.gang.inGang() ? 7 : 0,
-		ramNeededForMoreTargets = 10000,
-		maxTargets = 5,
-		saveMoneyAfterPserv = 3;
+		hackRam = ns.getScriptRam(hackFile);
 
 	for (let i = 0; i < 100; i++) {
 		logTargetOA.push(
@@ -62,17 +58,28 @@ export async function main(ns) {
 
 	//----------------------------------------MAIN LOOP----------------------------------------MAIN LOOP----------------------------------------
 	while (true) {
-		if (prevTime + 1000 < ns.getTimeSinceLastAug()) {
+		if (prevTime + 1400 < ns.getTimeSinceLastAug()) {
+			if (ns.getHackingLevel() >= ns.getServerRequiredHackingLevel("phantasy")) singleTarget = "phantasy";
 			updateServers();
-			await buyServers(saveMoneyAfterPserv);
+			if (ns.getPurchasedServers().length < ns.getPurchasedServerLimit()) await buyServers(saveMoneyAfterPserv);
 			if (!allHacked) await openPorts2(ns, allServers);
 			targetsA = [];
 			const totalRam = serversOA.reduce((total, serv) => total + serv.maxRam, 0);
-			numberOfTargets = Math.min(maxTargets, Math.ceil(totalRam / ramNeededForMoreTargets));
-			moneyToSteal = totalRam > 6000 ? 0.1 : 0.05;
+			numberOfTargets = Math.max(1, Math.min(maxTargets, Math.ceil(totalRam / ramNeededForMoreTargets)));
+			moneyToSteal = [
+				[0, .03],
+				[6000, .07],
+				[30000, .15],
+				[60000, .2],
+				[120000, .25],
+				[180000, .75]
+			].filter(x => x[0] <= totalRam).pop()[1];
+
 			logServersA[0] = "Total ram in servers: " + ns.nFormat(serversOA.reduce((total, serv) => total + serv.freeRam, 0) * 1e9, "0.0b") + "/" + ns.nFormat(totalRam * 1e9, "0.0b");
 			for (let i = 0; i < numberOfTargets; i++) {
-				target = totalRam < ramNeededForMoreTargets ? "n00dles" : pickTarget(targetsA);
+				target = hackSingleTarget ? singleTarget : totalRam < ramNeededForMoreTargets ? singleTarget : pickTarget(targetsA);
+				if (!target) continue;
+				if (!ns.hasRootAccess(target)) continue;
 				logTargetOA[i].name = target;
 				// if (target != prevTarget) {
 				// 	//kill all hwg scripts							TODO
@@ -92,18 +99,33 @@ export async function main(ns) {
 				}
 				prevTarget = target;
 			}
+			prevTime = ns.getTimeSinceLastAug();
+
 		}
 		//ns.tprint("ERROR targetsA: " + targetsA);
+		updateServers();
+		if (useHashes) {
+			if (target) ns.exec("/ver6/ver6hacknet.js", "home", 1, target);
+			else ns.exec("/ver6/ver6hacknet.js", "home", 1, "phantasy");
+		}
 		updateTail();
-		await ns.sleep(500);
+		await ns.sleep(50);
 	}
+
 	//----------------------------------------MAIN LOOP----------------------------------------MAIN LOOP----------------------------------------
 
 	function updateTail() {
 		ns.clearLog();
-		if (logA.length > 15) logA.splice(0, 1);
-		if (logServersA.length > 5) logServersA.splice(0, 1);
+		while (logA.length > 14) logA.splice(0, 1);
+		while (logServersA.length > 5) logServersA.splice(0, 1);
 		logServersA[3] = "Money to steal: " + moneyToSteal * 100 + "%";
+
+		for (let i = serversOA.length - 1; i >= 0; i--) {
+			logServersA[4] = 0;
+			if (ns.isRunning("/lib/share.js", serversOA[i].name))
+				logServersA[4]++;
+			serversOA.splice[i];
+		}
 
 		ns.print("=============MAIN===============")
 		ns.print("");
@@ -113,7 +135,7 @@ export async function main(ns) {
 			if (logServersA[i]) ns.print(logServersA[i]);
 			else ns.print("");
 		}
-		ns.print("Sharing for faction rep: " + logServersA[3]);
+		ns.print("Sharing for faction rep: " + logServersA[4]);
 		ns.print("=============TARGETS============")
 		for (let i = 0; i < numberOfTargets; i++) {
 			ns.print(logTargetOA[i].name + ": " + logTargetOA[i].state);
@@ -129,12 +151,18 @@ export async function main(ns) {
 		serversOA = [];
 		for (const serv of getServersWithRam(ns)) {
 			if (ns.hasRootAccess(serv)) {
+				if ((serv.startsWith("hackn") && ns.getTimeSinceLastAug() % 600000 < 300000) && serv != "hacknet-node-0")
+					continue;
 				serversOA.push({
 					name: serv,
 					maxRam: ns.getServerMaxRam(serv),
 					freeRam: ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv)
 				})
-				if (serv == "home") serversOA.freeRam -= 24;
+				if (serv == "home") {
+					serversOA[serversOA.length - 1].freeRam -= 50;
+					//ns.tprint(serversOA[serversOA.length - 1].name + " freeram: " + serversOA[serversOA.length - 1].freeRam,
+					//	" max: " + ns.getServerMaxRam(serv) + " used: " + ns.getServerUsedRam(serv))
+				}
 			}
 		}
 		let moneyTXT;
@@ -152,16 +180,24 @@ export async function main(ns) {
 			logServersA[2] = "";
 		}
 		logServersA[3] = 0;
-		for (let i = serversOA.length - 1; i >= 0; i--) {
-			if (ns.isRunning("/lib/share.js", serversOA[i].name))
-				logServersA[3]++;
-			serversOA.splice[i];
-		}
 
 		objectArraySort(ns, serversOA, "freeRam", "big");
 	}
 
 	function initializeTarget(targ) {
+		let pids = [];
+		for (const serv of serversOA) {
+			for (const thing of ns.ps(serv.name)) {
+				if (thing.filename.includes(["hack"])) {
+					if (Object.values(thing.args).includes(targ)) {
+						pids.push(thing.pid)
+					}
+				}
+			}
+		}
+		pids.sort(function (a, b) { return b - a });
+		if (pids.length > 0) ns.kill(...pids.splice(pids.length - 1, 1));
+
 		for (let i = initQRunningOA.length - 1; i >= 0; i--) {
 			if (initQRunningOA.length > 0) {
 				if (initQRunningOA[i].endTime < ns.getTimeSinceLastAug()) {
@@ -176,13 +212,14 @@ export async function main(ns) {
 		for (let i = 0; i < serversOA.length; i++) {
 			let didntFit = false;
 
-			objectArraySort(ns, serversOA, "freeRam", "big");
+			//objectArraySort(ns, serversOA, "freeRam", "big");
+			updateServers();
 
 			let maxMoney = ns.getServerMaxMoney(targ),
 				currentMoney = ns.getServerMoneyAvailable(targ),
 				minSec = ns.getServerMinSecurityLevel(targ),
 				growThreads = Math.ceil(ns.growthAnalyze(targ, maxMoney / currentMoney) * 1.2),
-				secu = ns.getServerSecurityLevel(targ) + ns.growthAnalyzeSecurity(growThreads, targ, 1) * 1.2,
+				secu = ns.getServerSecurityLevel(targ) + ns.growthAnalyzeSecurity(growThreads, targ, 1),
 				weakThreads = Math.ceil((secu - minSec) / ns.weakenAnalyze(1));
 
 			if (!growThreads && !weakThreads) {
@@ -213,6 +250,7 @@ export async function main(ns) {
 				}
 			}
 			if (weakThreads) ns.exec(weakFile, serversOA[0].name, weakThreads, targ, 1);
+			serversOA[0].freeRam -= weakThreads * weakRam;
 			//ns.tprint("Init weaking " + targ + ", threads: " + weakThreads + " time: " + ns.getWeakenTime(targ));
 
 			initQRunningOA.push({ name: targ, endTime: ns.getWeakenTime(targ) + ns.getTimeSinceLastAug() });
@@ -231,31 +269,103 @@ export async function main(ns) {
 		let totalServerRam = serversOA.reduce((total, serv) => total + serv.maxRam, 0);
 		let freeServerRam = serversOA.reduce((total, serv) => total + serv.freeRam, 0);
 		if (totalServerRam * .8 < totalScriptRam) {
-			ns.alert("Not enough ram to run batch.\nMake a function to reduce target to shittier one.\nRam needed: " + totalScriptRam + ", you have: " + totalServerRam);
-			ns.exit();
+			logA.push("Not enough total ram, " + totalScriptRam + "/" + totalServerRam)
+			//targetO = await getTargetObject("n00dles");
 		}
 
 		if (freeServerRam < totalScriptRam) return;
 
-		//args=target, sleep, random, scriptTime, batcInterval, debug on
-		if (targetO.weak1Threads * weakRam < serversOA[0].freeRam) {
-			ns.exec(weakFile, serversOA[0].name, targetO.weak1Threads, targetO.name, 0, Math.random(), targetO.weakTime, batchInterval, batchDebug);
-		} else logA.push("out of ram to run weak1! " + Math.ceil(targetO.weak1Threads * weakRam) + " needed, " + Math.floor(serversOA[0].freeRam) + " free");
-		updateServers();
-		//objectArraySort(serversOA, "freeRam", "big");
-		if (targetO.weak2Threads * weakRam < serversOA[0].freeRam) {
-			ns.exec(weakFile, serversOA[0].name, targetO.weak2Threads, targetO.name, batchInterval * 2, Math.random(), targetO.weakTime, batchInterval, batchDebug);
-		} else logA.push("out of ram to run weak2! " + Math.ceil(targetO.weak2Threads * weakRam) + " needed, " + Math.floor(serversOA[0].freeRam) + " free");
-		//objectArraySort(serversOA, "freeRam", "big");
-		updateServers();
-		if (targetO.growThreads * growRam < serversOA[0].freeRam) {
-			ns.exec(growFile, serversOA[0].name, targetO.growThreads, targetO.name, targetO.weakTime - targetO.growTime + batchInterval, Math.random(), targetO.growTime, batchInterval, batchDebug);
-		} else logA.push("out of ram to run grow! " + Math.ceil(targetO.growThreads * growRam) + " needed, " + Math.floor(serversOA[0].freeRam) + " free");
-		//objectArraySort(serversOA, "freeRam", "big");
-		updateServers();
-		if (targetO.hackThreads * hackRam < serversOA[0].freeRam) {
-			ns.exec(hackFile, serversOA[0].name, targetO.hackThreads, targetO.name, targetO.weakTime - targetO.hackTime - batchInterval, Math.random(), targetO.hackTime, batchInterval, batchDebug);
-		} else logA.push("out of ram to run hack! " + Math.ceil(targetO.hackThreads * hackRam) + " needed, " + Math.floor(serversOA[0].freeRam) + " free");
+		const randomNum = Math.random();
+		let killScripts = false;
+		for (const shit of ["hack", "weak1", "weak2", "grow"]) {
+			updateServers();
+			if (serversOA[0] == "hacknet-node-0") {
+				await getTargetObject(target, ns.getServer("hacknet-node-0").cpuCores);
+				totalScriptRam = targetO.weak1Threads * weakRam
+					+ targetO.weak2Threads * weakRam
+					+ targetO.growThreads * growRam
+					+ targetO.hackThreads * hackRam;
+			}
+			runShit(shit, targetO);
+		}
+
+
+		function runShit(wgh, targetObj, servRam = serversOA[0].freeRam, serv = serversOA[0].name) {
+			if (killScripts) return;
+			let runO;
+			const targ = targetObj.name,
+				id = randomNum;
+
+			switch (wgh) {
+				case "weak1":
+					runO = {
+						threads: targetObj.weak1Threads,
+						file: weakFile,
+						waitTime: 0,
+						execTime: targetObj.weakTime,
+						ram: targetObj.weak1Threads * weakRam
+					}
+					break;
+
+				case "weak2":
+					runO = {
+						threads: targetObj.weak2Threads,
+						file: weakFile,
+						waitTime: batchInterval * 2,
+						execTime: targetObj.weakTime,
+						ram: targetObj.weak1Threads * weakRam
+					}
+					break;
+
+				case "grow":
+					runO = {
+						threads: targetObj.growThreads,
+						file: growFile,
+						waitTime: targetObj.weakTime - targetObj.growTime + batchInterval,
+						execTime: targetObj.growTime,
+						ram: targetObj.growThreads * growRam
+					}
+					break;
+
+				case "hack":
+					runO = {
+						threads: targetObj.hackThreads,
+						file: hackFile,
+						waitTime: targetObj.weakTime - targetObj.hackTime - batchInterval,
+						execTime: targetObj.hackTime,
+						ram: targetObj.hackThreads * hackRam
+					}
+					break;
+			}
+
+			if (runO.ram < servRam) {
+				ns.exec(runO.file,
+					serv,
+					runO.threads,
+					targetO.name,
+					runO.waitTime,
+					id,
+					runO.execTime,
+					batchInterval,
+					batchDebug);
+			} else {
+				logA.push("out of ram to run " + wgh + " " + Math.ceil(runO.ram) + " needed, " + Math.floor(serversOA[0].freeRam) + " free");
+				killScripts = true;
+			}
+		}
+
+		if (killScripts) {
+			for (const serv of serversOA) {
+				for (const thing of ns.ps(serv.name)) {
+					if (Object.values(thing.args).includes(randomNum)) {
+						//ns.tprint("Killed " + thing.filename);
+						ns.kill(thing.pid);
+					}
+				}
+			} ns.weakenAnalyze
+		}
+
+
 		/* 		
 		todo:
 		V-check total ram vs total scripts ram
@@ -295,8 +405,8 @@ export async function main(ns) {
 		serverObject.hackDifficulty = serverObject.minDifficulty;
 		serverObject.moneyAvailable = serverObject.moneyMax * (1 - moneyToSteal);
 		while (!foundThreads) { //binary search for number of growThreads
-			if (minGuess == maxGuess) foundThreads = true;
-			if (minGuess + 1 == maxGuess) foundThreads = true;
+			if (minGuess == maxGuess && newMoney >= serverObject.moneyMax) foundThreads = true;
+			if (minGuess + 1 == maxGuess && newMoney >= serverObject.moneyMax) foundThreads = true;
 			prevThreads = threads; //previous guess
 			let serverGrowth = ns.formulas.hacking.growPercent(serverObject, threads, playerObject, numCores);
 			newMoney = (serverObject.moneyAvailable + threads) * serverGrowth;
@@ -311,8 +421,7 @@ export async function main(ns) {
 			}
 		}
 
-
-		targetO.growThreads = Math.max(2, Math.ceil(threads * 1.2));
+		targetO.growThreads = Math.max(2, Math.ceil(threads * 1.15));
 		targetO.growTime = Math.ceil(ns.formulas.hacking.growTime(serverObject, playerObject));
 
 		targetO.hackThreads = Math.max(1, Math.floor(
@@ -321,7 +430,7 @@ export async function main(ns) {
 		targetO.hackTime = Math.ceil(ns.formulas.hacking.hackTime(serverObject, playerObject));
 
 		targetO.weak1Threads = Math.max(2, Math.ceil(
-			ns.hackAnalyzeSecurity(targetO.hackThreads * 1.2, targetServ)
+			ns.hackAnalyzeSecurity(targetO.hackThreads * 1.1, targetServ)
 			/ ns.weakenAnalyze(1, numCores)
 		));
 
@@ -336,20 +445,20 @@ export async function main(ns) {
 		return targetO;
 	}
 
-	/**@param moneyToSpend {number} 2 = use 1/2 of money, 4 = use 1/4 of money etc... ROUNDED UP, up to 2/2, 2/4 etc*/
+	/**@param moneyToSpend {number} 2 = use 1/2 of money, 4 = use 1/4 of money etc... ROUNDED UP, up to 2/2, 2/4, etc*/
 	async function buyServers(moneyToSpend = 2, maxRam = ns.getPurchasedServerMaxRam()) {
 		const maxServers = ns.getPurchasedServerLimit();
+		if (maxServers == 0) return;
 		let ram = 4; //min ram to have
 		let buy = false;
-
-		if (ns.serverExists("perkele0")) {
+		if (ns.serverExists("perkele0")) { //name of first purchased server
 			if (maxRam <= ns.getServerMaxRam("perkele0")) return;
 			ram = ns.getServerMaxRam("perkele0") * 2, ram; //set ram to current ram
 		}
 		while (ram < maxRam && ns.getServerMoneyAvailable("home") / moneyToSpend > ns.getPurchasedServerCost(ram) * maxServers) {
 			ram *= 2; //increase ram until happy
 			buy = true;
-			await ns.sleep(1);
+			await ns.sleep();
 		}
 
 		if (buy) { //don't buy potatoes
@@ -361,7 +470,7 @@ export async function main(ns) {
 
 			let bought = 0;
 			for (let i = 0; i < maxServers; i++) { //buy new servers
-				if (ns.getServerMoneyAvailable("home") > ns.getPurchasedServerCost(ram)) { //double check money, if some other script joinks some of it while this is running
+				if (ns.getServerMoneyAvailable("home") > ns.getPurchasedServerCost(ram)) { //double check money, if some other script joinks some of it while this is running... Is that even possible, idk. Now it isn't.
 					ns.purchaseServer("perkele" + i, ram);
 					bought++;
 					await ns.scp(allFiles, "perkele" + i); //copy files to new servers
@@ -374,17 +483,20 @@ export async function main(ns) {
 
 		for (let i = serversOA.length - 1; i >= 0; i--) {
 			try {
-				const [fullMatch, serverNumber] = serversOA[i].name.match(/perkele(\d+)/);
-				if (Number(serverNumber) < shareServers) {
-					if (!ns.fileExists("/lib/share.js", serversOA[i].name)) await ns.scp("/lib/share.js", serversOA[i].name);
-					if (!ns.isRunning("/lib/share.js", serversOA[i].name)) {
-						let threads = Math.floor(ns.getServerMaxRam(serversOA[i].name) / ns.getScriptRam("/lib/share.js", serversOA[i].name));
-						if (threads) ns.exec("/lib/share.js", serversOA[i].name, threads);
-						serversOA.splice[i];
+				//const [fullMatch, serverNumber] = serversOA[i].name.match(/perkele(\d+)/);
+				if (serversOA[i].name.match(/perkele/)) {
+					//	if (Number(serverNumber) < shareServers) {
+					if (Number(serversOA[i].name.match(/\d+/)[0]) < shareServers) {
+						if (!ns.fileExists("/lib/share.js", serversOA[i].name)) await ns.scp("/lib/share.js", serversOA[i].name);
+						if (!ns.isRunning("/lib/share.js", serversOA[i].name)) {
+							let threads = Math.floor(ns.getServerMaxRam(serversOA[i].name) / ns.getScriptRam("/lib/share.js", serversOA[i].name));
+							if (threads) ns.exec("/lib/share.js", serversOA[i].name, threads);
+							serversOA.splice[i];
+						}
 					}
 				}
 			}
-			catch { }
+			catch { logA.push = ("Error with share servers, wtf") }
 		}
 	}
 
@@ -412,6 +524,7 @@ export async function main(ns) {
 		let progs = ["brutessh.exe", "ftpcrack.exe", "relaysmtp.exe", "httpworm.exe", "sqlinject.exe", "dsfsd"];
 		const ownedProgs = progs.filter((x) => ns.fileExists(x));
 		for (const serv of servers) {
+			if (serv.startsWith("hackne")) continue;
 			for (const prog of ownedProgs) {
 				switch (prog) {
 					case "brutessh.exe":

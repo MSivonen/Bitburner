@@ -90,7 +90,7 @@ export async function main(ns) {
 		await ns.sleep(1000);
 	}
 
-	ns.tprint("ERRORTESTI");
+	//ns.tprint("ERRORTESTI");
 
 	ns.print("All servers hacked.");
 	//ns.tprint("money before: " + ns.getServerMaxMoney(target) - ns.getServerMoneyAvailable(target));
@@ -116,7 +116,7 @@ export async function main(ns) {
 
 
 
-	ns.tprint("ERRORTESTI");
+	//ns.tprint("ERRORTESTI");
 
 	// MAIN LOOP MAIN LOOP MAIN LOOP MAIN LOOP MAIN LOOP MAIN LOOP MAIN LOOP MAIN LOOP MAIN LOOP 
 	while (true) {
