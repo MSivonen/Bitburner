@@ -48,7 +48,7 @@ export async function main(ns) {
         ns.ls(name, ".cct").forEach(ctName => {
             ctText += ["<a title='", ctName,
                 //Comment out the next line to reduce footprint by 5 GB
-                "&#10;", ns.codingcontract.getContractType(ctName, name),
+                //"&#10;", ns.codingcontract.getContractType(ctName, name),
                 "'>©</a>"].join("");
         });
 
@@ -70,7 +70,7 @@ export async function main(ns) {
         ].join("");
     });
 
-    ns.tprint(output);
+   // ns.tprint(output);
 
     const list = document.getElementById("terminal");
     list.insertAdjacentHTML('beforeend', output);

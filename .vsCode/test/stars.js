@@ -12,7 +12,10 @@ export async function main(ns) {
 	canvas.style.zIndex = 8;
 	canvas.style.position = "absolute";
 	var body = doc.getElementsByTagName("body")[0];
+	//body.style = 'background-color: GREEN';
 	body.appendChild(canvas);
+
+	//ns.tprint(body);
 
 	let width = canvas.width / 2;
 	let height = canvas.height / 2;

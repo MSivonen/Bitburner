@@ -9,47 +9,47 @@
 					"label": "main(ns)"
 				},
 				{
-					"line": 58,
+					"line": 62,
 					"column": 52,
 					"label": "MAIN LOOP"
 				},
 				{
-					"line": 116,
+					"line": 125,
 					"column": 21,
 					"label": "updateTail()"
 				},
 				{
-					"line": 149,
+					"line": 151,
 					"column": 10,
 					"label": "updateServers()"
 				},
 				{
-					"line": 186,
+					"line": 188,
 					"column": 32,
 					"label": "initializeTarget(targ)"
 				},
 				{
-					"line": 260,
+					"line": 262,
 					"column": 22,
 					"label": "badger(targ)"
 				},
 				{
-					"line": 380,
+					"line": 386,
 					"column": 51,
 					"label": "getTargetObject(targetServ, numCores = 1)"
 				},
 				{
-					"line": 448,
+					"line": 454,
 					"column": 83,
 					"label": "buyServers(moneyToSpend = 2, maxRam = ns.getPurchasedServerMaxRam()"
 				},
 				{
-					"line": 502,
+					"line": 508,
 					"column": 22,
 					"label": "pickTarget()"
 				},
 				{
-					"line": 521,
+					"line": 527,
 					"column": 39,
 					"label": "openPorts2(ns, servers)"
 				}
@@ -59,52 +59,47 @@
 			"path": ".vsCode/bn4/startSin.js",
 			"bookmarks": [
 				{
-					"line": 26,
+					"line": 27,
 					"column": 30,
 					"label": "main(ns)"
 				},
 				{
-					"line": 80,
+					"line": 75,
 					"column": 19,
 					"label": "dynFunctions"
 				},
 				{
-					"line": 185,
+					"line": 178,
 					"column": 3,
 					"label": "==MAIN LOOP=="
 				},
 				{
-					"line": 205,
+					"line": 218,
 					"column": 20,
 					"label": "updateTail()"
 				},
 				{
-					"line": 225,
-					"column": 26,
-					"label": "getBestFaction()"
-				},
-				{
-					"line": 237,
+					"line": 245,
 					"column": 33,
 					"label": "writeScript(func)"
 				},
 				{
-					"line": 245,
+					"line": 253,
 					"column": 22,
 					"label": "idle()"
 				},
 				{
-					"line": 357,
+					"line": 419,
 					"column": 22,
 					"label": "buyDarkweb()"
 				},
 				{
-					"line": 392,
+					"line": 453,
 					"column": 18,
 					"label": "murder()"
 				},
 				{
-					"line": 410,
+					"line": 471,
 					"column": 27,
 					"label": "doHacking()"
 				}
@@ -114,57 +109,57 @@
 			"path": ".vsCode/gang/thugGang.js",
 			"bookmarks": [
 				{
-					"line": 46,
+					"line": 44,
 					"column": 13,
 					"label": ""
 				},
 				{
-					"line": 61,
+					"line": 59,
 					"column": 8,
 					"label": ""
 				},
 				{
-					"line": 67,
+					"line": 65,
 					"column": 14,
 					"label": ""
 				},
 				{
-					"line": 77,
+					"line": 75,
 					"column": 11,
 					"label": ""
 				},
 				{
-					"line": 135,
+					"line": 124,
 					"column": 10,
 					"label": ""
 				},
 				{
-					"line": 147,
+					"line": 136,
 					"column": 16,
 					"label": ""
 				},
 				{
-					"line": 170,
+					"line": 153,
 					"column": 10,
 					"label": ""
 				},
 				{
-					"line": 201,
+					"line": 183,
 					"column": 84,
 					"label": "==MAIN LOOP=="
 				},
 				{
-					"line": 239,
+					"line": 215,
 					"column": 17,
 					"label": ""
 				},
 				{
-					"line": 253,
+					"line": 229,
 					"column": 20,
 					"label": ""
 				},
 				{
-					"line": 93,
+					"line": 90,
 					"column": 1,
 					"label": ""
 				}

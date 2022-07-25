@@ -1,94 +1,8 @@
 /** @param {NS} ns */
-
-import { readFromJSON, writeToJSON } from '/lib/includes';
-
 /** @param {import('..').NS} ns */
 export async function main(ns) {
     const doc = eval("document");
     let textArea = doc.querySelectorAll(".react-draggable:first-of-type")[0]; //find overview
-
-
-    // ============================== buttons ==============================
-    let g_sets = {
-        wantAugsInstalled: true,
-        wantBuyAugs: true,
-        wantHackNet: true,
-        wantJobs: true,
-        spamNeuroFlux: false,
-        overrideVars: false,
-        focusOnWork: false,
-        paused: false
-    };
-    if (!ns.fileExists("g_settings.txt")) //if file doesn't exist, make it
-    { await writeToJSON(ns, g_sets, "g_settings.txt"); }
-    for (const key of Object.keys(g_sets)) {
-        if (!readFromJSON(ns, "g_settings.txt").hasOwnProperty(key)) { //if file doesn't have some of the variables, rewrite it
-            await writeToJSON(ns, g_sets, "g_settings.txt");
-            break;
-        }
-    }
-    g_sets = readFromJSON(ns, "g_settings.txt");
-    ns.tprint(g_sets);
-    const buttonsTextStyle = //text beside button
-        `color:#090;
-		margin:0px auto;
-		font-family:'Comic Sans MS';
-        font-size:15px;
-		text-align:left;
-        `;
-
-    let buttonsA = [];
-
-    for (const key of Object.keys(g_sets)) { //make button objects
-        buttonsA.push(new Control(key, "", key, g_sets[key]));
-    }
-
-    for (const butt of buttonsA) makeButton(butt); //put the button objects to overview
-
-    function makeButton(butt) {
-        let newButton =
-            `<button id=${butt.buttonId} style="
-            border: 2px solid transparent;
-            border-radius: 7px;
-            border-color:#090;
-            background-color:#131;
-            width:40px; 
-            height:fit-content;
-            align:center;
-            font-family:'Comic Sans MS';
-            font-size:10px;
-            color:#0c0;
-            ">${butt.variable ? butt.buttonText + "ON" : butt.buttonText + "OFF"}</button>`;
-
-        textArea.insertAdjacentHTML('beforeend',
-
-            `<table style="width:90%; border:0px; margin-left:auto; margin-right:auto;">
-            <tr>
-                <th style="${buttonsTextStyle}">${butt.text}</th>
-                <th style="text-align:right">${newButton}</th>
-            </tr>
-        </table>`);
-        let btn = doc.querySelector("#" + butt.buttonId);
-        btn.addEventListener("click", () => {
-            butt.variable = !butt.variable;
-            btn.innerText =
-                butt.variable ? butt.buttonText + "ON" : butt.buttonText + "OFF";
-        });
-    }
-
-    /**@param {string} text Text beside button
-    *@param {string} buttonText Text inside button 
-    *@param {string} buttonId Unique id for finding this button 
-    *@param {boolean} variable variable this button controls */
-    function Control(text, buttonText, buttonId, variable = true) {
-        this.text = text;
-        this.buttonText = buttonText;
-        this.buttonId = buttonId;
-        this.variable = variable;
-    }
-    // ============================== /buttons ==============================
-
-
 
     if (!textArea.textContent.includes("***")) { //check if this script hasn't been run... probably maybe.
         let text = doc.createTextNode("Someone fucked up something.\nProbably you.");
@@ -99,8 +13,8 @@ export async function main(ns) {
     ns.disableLog("ALL");
     const lines = 10, //number of lines to have before dropping oldest
         pixX = 40, pixY = lines + 8, //print area xx char cols, yy char rows.
-        gravity = .2, //constant for all particles
-        empty = ""; //empty character
+        gravity = .1, //constant for all particles
+        empty = " "; //empty character
     let pixels = new Array(pixY), //init print area. Characters here are treated as pixels in drawing.
         pixelsCA = [],
         floor = pixY - 4, //where the text lands
@@ -128,6 +42,8 @@ export async function main(ns) {
             this.char = char_;
             this.velY = 0; //velocity Y
             this.accY = 0; //acceleration Y
+            this.velX = 0; //velocity X
+            this.accX = 0; //acceleration X
             this.floor = floor_;
             this.atFloor = false;
             this.alive = true; //set to false for garbage collector to pick it up
@@ -143,6 +59,9 @@ export async function main(ns) {
         }
 
         setPos() {
+            this.velX += this.accX;
+            this.x += this.velX;
+            this.accX = 0;
             this.accY += gravity;
             this.velY += this.accY
             this.y += this.velY;
@@ -166,7 +85,7 @@ export async function main(ns) {
                 this.floor = 99e99;
                 this.dropped = true; //don't run this if() again
             }
-            if (this.y >= pixY) this.alive = false; //this char went below print area, kill it
+            if (this.y >= pixY || this.x > pixX || this.x < 0) this.alive = false; //this char went outside print area, kill it
         }
 
         draw() { //if inside print area, put it into pixels array
@@ -180,22 +99,41 @@ export async function main(ns) {
 
     ns.atExit(() => {
         textArea.removeChild(textArea.lastChild); //remove log
-        for (const butt of buttonsA) //remove buttons
-            doc.getElementById(butt.buttonId).remove();
-        for (let i = 0; i < buttonsA.length; i++) //remove button texts
-            textArea.removeChild(textArea.lastChild);
-
-
     });
 
+    let prevTime = ns.getTimeSinceLastAug();
+    let prevTime2 = ns.getTimeSinceLastAug();
     while (true) {
-        await ns.sleep(20);
-        await buttonsLoop();
+        if (prevTime2 + 500 < ns.getTimeSinceLastAug()) {
+            logPort.write(Math.random());
+            prevTime2 = ns.getTimeSinceLastAug();
+        }
 
-        //log stuff
+        if (prevTime + 5000 < ns.getTimeSinceLastAug()) {
+            prevTime = ns.getTimeSinceLastAug();
+            ns.print("BOOOM");
+            explode();
+        }
+        updateLog();
+        await ns.sleep(20);
+    }
+
+    function explode() {
+        for (const line of pixelsCA) {
+            floor++;
+            for (const char of line) {
+                char.floor = 99e99;
+                char.dropped = true;
+                char.accX = 2 * (Math.random() - .5);
+                char.accY = 2 * (Math.random() - .8);
+            }
+        }
+    }
+
+    function updateLog() {
         clearDisplay();
         while (!logPort.empty()) {
-            makeTextLine(logPort.read());
+            makeTextLine(logPort.read().toString());
             floor--;
         }
         for (let i = pixelsCA.length - 1; i >= 0; i--) {
@@ -213,24 +151,13 @@ export async function main(ns) {
             }
         }
         display();
-        // /log stuff
-    }
-
-    async function buttonsLoop() {
-        for (const butt of buttonsA) {
-            let btn = doc.querySelector("#" + butt.buttonId);
-            btn.innerText =
-                butt.variable ? butt.buttonText + "ON" : butt.buttonText + "OFF";
-            btn.style.backgroundColor = butt.variable ? "#030" : "#000";
-            g_sets[butt.buttonId] = butt.variable;
-        }
-        await writeToJSON(ns, g_sets, "g_settings.txt");
     }
 
     function makeTextLine(textLine) {
         pixelsCA.push([]);
-        for (let i = 0; i < textLine.length; i++) {
-            pixelsCA[pixelsCA.length - 1].push(new Pixel(i, -1, textLine[i], floor, index));
+        const pos = Math.floor((pixX - textLine.length) / 2);
+        for (let i = pos; i < textLine.length + pos; i++) {
+            pixelsCA[pixelsCA.length - 1].push(new Pixel(i, -1, textLine[i - pos], floor, index));
         }
         index++;
     }

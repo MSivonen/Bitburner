@@ -1,94 +1,8 @@
 /** @param {NS} ns */
-
-import { readFromJSON, writeToJSON } from '/lib/includes';
-
 /** @param {import('..').NS} ns */
 export async function main(ns) {
     const doc = eval("document");
     let textArea = doc.querySelectorAll(".react-draggable:first-of-type")[0]; //find overview
-
-
-    // ============================== buttons ==============================
-    let g_sets = {
-        wantAugsInstalled: true,
-        wantBuyAugs: true,
-        wantHackNet: true,
-        wantJobs: true,
-        spamNeuroFlux: false,
-        overrideVars: false,
-        focusOnWork: false,
-        paused: false
-    };
-    if (!ns.fileExists("g_settings.txt")) //if file doesn't exist, make it
-    { await writeToJSON(ns, g_sets, "g_settings.txt"); }
-    for (const key of Object.keys(g_sets)) {
-        if (!readFromJSON(ns, "g_settings.txt").hasOwnProperty(key)) { //if file doesn't have some of the variables, rewrite it
-            await writeToJSON(ns, g_sets, "g_settings.txt");
-            break;
-        }
-    }
-    g_sets = readFromJSON(ns, "g_settings.txt");
-    ns.tprint(g_sets);
-    const buttonsTextStyle = //text beside button
-        `color:#090;
-		margin:0px auto;
-		font-family:'Comic Sans MS';
-        font-size:15px;
-		text-align:left;
-        `;
-
-    let buttonsA = [];
-
-    for (const key of Object.keys(g_sets)) { //make button objects
-        buttonsA.push(new Control(key, "", key, g_sets[key]));
-    }
-
-    for (const butt of buttonsA) makeButton(butt); //put the button objects to overview
-
-    function makeButton(butt) {
-        let newButton =
-            `<button id=${butt.buttonId} style="
-            border: 2px solid transparent;
-            border-radius: 7px;
-            border-color:#090;
-            background-color:#131;
-            width:40px; 
-            height:fit-content;
-            align:center;
-            font-family:'Comic Sans MS';
-            font-size:10px;
-            color:#0c0;
-            ">${butt.variable ? butt.buttonText + "ON" : butt.buttonText + "OFF"}</button>`;
-
-        textArea.insertAdjacentHTML('beforeend',
-
-            `<table style="width:90%; border:0px; margin-left:auto; margin-right:auto;">
-            <tr>
-                <th style="${buttonsTextStyle}">${butt.text}</th>
-                <th style="text-align:right">${newButton}</th>
-            </tr>
-        </table>`);
-        let btn = doc.querySelector("#" + butt.buttonId);
-        btn.addEventListener("click", () => {
-            butt.variable = !butt.variable;
-            btn.innerText =
-                butt.variable ? butt.buttonText + "ON" : butt.buttonText + "OFF";
-        });
-    }
-
-    /**@param {string} text Text beside button
-    *@param {string} buttonText Text inside button 
-    *@param {string} buttonId Unique id for finding this button 
-    *@param {boolean} variable variable this button controls */
-    function Control(text, buttonText, buttonId, variable = true) {
-        this.text = text;
-        this.buttonText = buttonText;
-        this.buttonId = buttonId;
-        this.variable = variable;
-    }
-    // ============================== /buttons ==============================
-
-
 
     if (!textArea.textContent.includes("***")) { //check if this script hasn't been run... probably maybe.
         let text = doc.createTextNode("Someone fucked up something.\nProbably you.");
@@ -180,22 +94,17 @@ export async function main(ns) {
 
     ns.atExit(() => {
         textArea.removeChild(textArea.lastChild); //remove log
-        for (const butt of buttonsA) //remove buttons
-            doc.getElementById(butt.buttonId).remove();
-        for (let i = 0; i < buttonsA.length; i++) //remove button texts
-            textArea.removeChild(textArea.lastChild);
-
-
     });
 
     while (true) {
+        updateLog();
         await ns.sleep(20);
-        await buttonsLoop();
+    }
 
-        //log stuff
+    function updateLog() {
         clearDisplay();
         while (!logPort.empty()) {
-            makeTextLine(logPort.read());
+            makeTextLine(logPort.read().toString());
             floor--;
         }
         for (let i = pixelsCA.length - 1; i >= 0; i--) {
@@ -213,18 +122,6 @@ export async function main(ns) {
             }
         }
         display();
-        // /log stuff
-    }
-
-    async function buttonsLoop() {
-        for (const butt of buttonsA) {
-            let btn = doc.querySelector("#" + butt.buttonId);
-            btn.innerText =
-                butt.variable ? butt.buttonText + "ON" : butt.buttonText + "OFF";
-            btn.style.backgroundColor = butt.variable ? "#030" : "#000";
-            g_sets[butt.buttonId] = butt.variable;
-        }
-        await writeToJSON(ns, g_sets, "g_settings.txt");
     }
 
     function makeTextLine(textLine) {

@@ -1,3 +1,4 @@
+import { readFromJSON } from "/lib/includes"
 import { writeToJSON } from "/lib/includes"
 import { objectArraySort } from "/lib/includes"
 import { printArray } from "/lib/includes.js"
@@ -31,26 +32,22 @@ export async function main(ns) {
 		wantGang = true,
 		timeToWaitForAugs = 300 * 1000,
 		augInstallTimer = 60000 * 120, //120min
-		wantAugsInstalled = true,
-		wantBuyAugs = true,
-		wantHackNet = true,
-		wantJobs = true,
-		wantAugNum = 5;
-	ns.tail();
-	let paused = false,
-		doc = globalThis["document"];
-	ns.disableLog("ALL");
-	let draggables = doc.querySelectorAll(".react-draggable");
-	let logWindow = draggables[draggables.length - 1]; // Reference to the full log window, not just the log area. Needed because the buttons aren't in the log area.
+		firstRun = ns.getTimeSinceLastAug() == ns.getPlayer().playtimeSinceLastBitnode ? true : false,
+		wantAugNum = 5,
+		nextBN = 7;
 
-	let killButton = logWindow.querySelector("button");
-	let pauseButton = killButton.cloneNode(); //copies the kill button for styling purposes
-	pauseButton.addEventListener("click", () => {
-		paused = !paused;
-		pauseButton.innerText = paused ? "Unpause" : "Pause";
-	})
-	pauseButton.innerText = "Pause";
-	killButton.insertAdjacentElement("beforeBegin", pauseButton);
+	let g_sets = readFromJSON(ns, "g_settings.txt"),
+		wantAugsInstalled = g_sets.wantAugsInstalled,
+		wantBuyAugs = g_sets.wantBuyAugs,
+		wantHackNet = g_sets.wantHackNet,
+		wantJobs = g_sets.wantJobs,
+		spamNeuroFlux = g_sets.spamNeuroFlux,
+		focusOnWork = g_sets.focusOnWork,
+		paused = g_sets.paused,
+		overrideVars = g_sets.overrideVars;
+
+	ns.tail();
+	ns.disableLog("ALL");
 
 	ns.exec("/watcher/watcher.js", "home");
 	ns.exec("/bn4/sleeves.js", "home");
@@ -74,12 +71,11 @@ export async function main(ns) {
 		"/bn4/buyHomeRam.js",
 		"/bn4/faction.js"
 	];
-	let activityText = [],
-		logA = ["", "", "", "", ""];
-
+	let activityText = [];
 
 	const dynFunctions = [
 		`//backdoors
+		const nextBN=ns.args[0];
 		const gangServers = ["CSEC",
 		 "avmnite-02h",
 		  "I.I.I.I",
@@ -94,7 +90,6 @@ export async function main(ns) {
 			"4sigma",
 			"kuai-gong",
 			"fulcrumassets",
-			"omnia"
 			];
 			for (let server of gangServers) {
 			if (ns.getServerRequiredHackingLevel(server) <= ns.getHackingLevel()
@@ -103,9 +98,9 @@ export async function main(ns) {
 				&& !server.startsWith("perke")) { //PURCHASED SERVER
 				connecter(ns, server);
 				if (server == "w0r1d_d43m0n") {
-					break;
 					let time = ns.getPlayer().totalPlaytime;
 					await ns.write("lastBNend.txt", time, "w");
+					ns.singularity.destroyW0r1dD43m0n(nextBN, "/bn4/spamHomicide.js");
 				}
 				ns.tprint("Installing backdoor on " + server);
 				await ns.singularity.installBackdoor();
@@ -113,7 +108,6 @@ export async function main(ns) {
 			}
 		}`
 		,
-
 		`//joinFactions
 		for (let fact of ns.singularity.checkFactionInvitations()) {
 			ns.singularity.joinFaction(fact);
@@ -170,7 +164,6 @@ export async function main(ns) {
 		`//startGang
 		const logPort = ns.getPortHandle(1);
 		if (ns.args[0] && !ns.gang.inGang() && !ns.isRunning("/gang/thugGang.js", "home") && ns.heart.break() < -54000) {
-				logA.push("Create gang");
 				logPort.write("Create gang");
 				ns.gang.createGang("Slum Snakes");
 				ns.exec("/gang/thugGang.js", "home");
@@ -184,49 +177,64 @@ export async function main(ns) {
 
 	ns.tail();
 	while (true) {
+		updateSettings();
+		if (!overrideVars) {
+			if (ns.getHackingLevel() > 1000) wantJobs = true;
+			else wantJobs = false;
+		}
 		while (paused) {
 			await ns.sleep(100);
+			updateSettings();
 		}
 		if (prevTime + 5000 < ns.getTimeSinceLastAug()) {
-			await ns.write("bestFact.txt", await getBestFaction(ns), "w");
+			runFunc("buyHomeRam");
+			await ns.write("bestFact.txt", await getBestFaction(ns, [], wantHackNet, firstRun), "w");
 			if (wantJobs) runFunc("getJobs");
 			runFunc("startGang", wantGang);
 			if (wantBuyAugs) getAugs();
 			buyDarkweb();
 			await copyProgs();
 			runFunc("joinFactions");
-			runFunc("backdoors");
-			runFunc("buyHomeRam");
+			runFunc("backdoors", nextBN);
 			prevTime = ns.getTimeSinceLastAug();
 		}
 		await idle();
 		updateTail();
+		if (await getBestFaction(ns, [], wantHackNet, firstRun) != "Nope")
+			donate(await getBestFaction(ns, [], wantHackNet, firstRun));
 		await ns.sleep(30)
+	}
+
+	function updateSettings() {
+		g_sets = readFromJSON(ns, "g_settings.txt");
+		wantAugsInstalled = g_sets.wantAugsInstalled,
+			wantBuyAugs = g_sets.wantBuyAugs,
+			wantHackNet = g_sets.wantHackNet,
+			wantJobs = g_sets.wantJobs,
+			spamNeuroFlux = g_sets.spamNeuroFlux,
+			focusOnWork = g_sets.focusOnWork,
+			overrideVars = g_sets.overrideVars,
+			paused = g_sets.paused;
 	}
 
 	function updateTail() {
 
 		ns.clearLog();
-		while (logA.length > 15) logA.splice(0, 1);
-
+		ns.print("Install augs " + wantAugsInstalled);
+		ns.print("Buy augs " + wantBuyAugs);
+		ns.print("Buy hacknet augs " + wantHackNet);
+		ns.print("Get jobs " + wantJobs);
+		ns.print("Spam neuroflux " + spamNeuroFlux);
+		ns.print("Focus on work " + focusOnWork);
+		ns.print("Override vars " + overrideVars);
+		ns.print("First run " + firstRun);
 		ns.print("=============MAIN===============")
 		ns.print(ns.gang.inGang() ? "In gang" : "Not in gang");
 		for (let i = 0; i < 3; i++) {
 			if (activityText[i]) ns.print(activityText[i]);
 			else ns.print("");
 		}
-
-		ns.print("=============LOG================")
-		for (let i = 0; i < 15; i++) {
-			if (logA[i]) ns.print(logA[i]);
-			else ns.print("");
-		}
 	}
-
-
-
-
-
 
 	function runFunc(func, runarg1 = false, runarg2 = false) {
 		let fileName = path + func + ".js";
@@ -244,31 +252,67 @@ export async function main(ns) {
 		const toWrite = imports + startOfFile + func + "\n}";
 		const name = path + fileName + ".js";
 		await ns.write(name, toWrite, "w");
+		await ns.sleep();
 	}
 
 	async function idle() {
 		let daedalus, redPill;
 		for (let aug of ns.singularity.getOwnedAugmentations()) {
-			if (aug == "The Red Pill") redPill = true;
+			if (aug == "The Red Pill") ns.singularity.installAugmentations();
 		}
 		for (let fact of ns.getPlayer().factions) {
 			if (fact == "Daedalus") daedalus = true;
 		}
-		if (!redPill && daedalus && !sin.isBusy()) {
-			ns.singularity.workForFaction("Daedalus", "Hacking contracts", false);
-			activityText[0] = "Hacking for daedalus";
+
+		if ((wantGang && (!ns.gang.inGang()) && !sin.isBusy())) {
+			murder();
+		} else if (ns.getPlayer().factions.length != 0 && (!wantGang || ns.gang.inGang()) && prevJobTime + 5000 < ns.getTimeSinceLastAug()) {
+			prevJobTime = ns.getTimeSinceLastAug();
+			let bestFact = await getBestFaction(ns, [], wantHackNet, firstRun).faction;
+
+			if (bestFact != "Nope" && bestFact) {
+				if (!ns.singularity.workForFaction(bestFact, "Hacking contracts", focusOnWork))
+					ns.singularity.workForFaction(bestFact, "Field work", focusOnWork);
+				activityText[0] = "Working for " + bestFact + " " + await getBestFaction(ns, [], wantHackNet, firstRun).aug;
+			}
 		}
 
-		else if ((wantGang && (!ns.gang.inGang()) && !sin.isBusy())) {
-			murder();
+		if (!redPill && daedalus) {
+			ns.singularity.workForFaction("Daedalus", "Hacking contracts", focusOnWork);
+			activityText[0] = "Hacking for daedalus";
 		}
-		else if (ns.getPlayer().factions.length != 0 && (!wantGang || ns.gang.inGang()) && prevJobTime + 5000 < ns.getTimeSinceLastAug()) {
-			prevJobTime = ns.getTimeSinceLastAug();
-			let bestFact = await getBestFaction(ns).faction;
-			if (bestFact != "Nope" && bestFact) {
-				if (!ns.singularity.workForFaction(bestFact, "Hacking contracts", false))
-					ns.singularity.workForFaction(bestFact, "Field work", false);
-				activityText[0] = "Working for " + bestFact + " " + await getBestFaction(ns).aug;
+	}
+
+	function donate(bestFaction) {
+		let donationFact = bestFaction.faction;
+		let bestAug = bestFaction.aug;
+		let augCost;
+		if (spamNeuroFlux) {
+			let best = 0;
+			bestAug = "NeuroFlux Governor";
+			augCost = ns.singularity.getAugmentationPrice("NeuroFlux Governor");
+			for (const fact of ns.getPlayer().factions) {
+
+				if (ns.singularity.getFactionFavor(fact) > best && fact != "Slum Snakes") {
+					donationFact = fact;
+					best = ns.singularity.getFactionFavor(fact);
+				}
+			}
+		} else
+			if (ns.getPlayer().currentWorkFactionName == "Daedalus") donationFact = "Daedalus";
+
+		if (donationFact && ns.singularity.getFactionFavor(donationFact) >= ns.getFavorToDonate()) {
+			if (donationFact == "Daedalus") {
+				augCost = 1e10;
+				bestAug = "The Red Pill";
+			} else
+				augCost = ns.singularity.getAugmentationPrice(bestAug);
+			if (ns.getServerMoneyAvailable("home") > augCost * 1.2) {
+				ns.tprint("Faction: " + donationFact + " cost: " + ns.getServerMoneyAvailable("home") / 100);
+				//ns.tprint(ns.singularity.getAugmentationRepReq(bestAug) + " " + ns.singularity.getFactionRep(donationFact));
+				if (ns.singularity.getAugmentationRepReq(bestAug) > ns.singularity.getFactionRep(donationFact)) {
+					ns.tprint(ns.singularity.donateToFaction(donationFact, ns.getServerMoneyAvailable("home") / 100));
+				}
 			}
 		}
 	}
@@ -276,7 +320,9 @@ export async function main(ns) {
 	async function copyProgs() {
 		for (let serv of getServers(ns)) {
 			for (let file of files) {
-				await ns.scp(file, serv);
+				try { await ns.scp(file, serv); }
+				catch { ns.alert("Error in startSin.js line 321 while copying " + file + " to " + serv) }
+				await ns.sleep(5);
 			}
 		}
 	}
@@ -317,27 +363,44 @@ export async function main(ns) {
 				if (aug == "Neuroreceptor Management Implant"
 					|| aug == "The Red Pill"
 					|| aug == "CashRoot Starter Kit") dontBuy = false;
-				if (aug.startsWith("NeuroFlux Govern")) dontBuy = true;
+				if (aug.startsWith("NeuroFlux Govern") && !spamNeuroFlux) dontBuy = true;
 
-				if (!dontBuy || (boughtAug >= wantAugNum || (boughtAug > 0 && ns.getTimeSinceLastAug() > augInstallTimer))) { //60 min
-					if (ns.singularity.purchaseAugmentation(fact, aug)) {
-						logA.push("Bought " + aug + " for main dude");
-						logPort.write("Bought " + aug + " for main dude");
-						boughtAug += 1;
-						timer = ns.getTimeSinceLastAug();
-						//ns.exec("/test/fireworks.js", "home", 1);
+				const CsecAugs = ns.singularity.getAugmentationsFromFaction("CyberSec").filter(e => {
+					return !ns.singularity.getOwnedAugmentations(true).includes(e);
+				});
+
+				if (firstRun && CsecAugs.length > 0) {
+					if (CsecAugs[CsecAugs.length - 1].endsWith("II") &&
+						!ns.singularity.getOwnedAugmentations().includes(CsecAugs[CsecAugs.length - 1].slice(0, -1)))
+						ns.singularity.purchaseAugmentation("CyberSec", CsecAugs.pop());
+					try { ns.singularity.purchaseAugmentation("CyberSec", CsecAugs.pop()); } catch { }
+				} else
+					if (!dontBuy || (boughtAug >= wantAugNum || (boughtAug > 0 && ns.getTimeSinceLastAug() > augInstallTimer))) { //60 min
+						if (!firstRun || CsecAugs.length == 0)
+							if (ns.singularity.purchaseAugmentation(fact, aug)) {
+								logPort.write("Bought " + aug + " for main dude");
+								boughtAug += 1;
+								timer = ns.getTimeSinceLastAug();
+								//ns.exec("/test/fireworks.js", "home", 1);
+							}
 					}
-				}
 			}
 		}
-		if (wantAugsInstalled && (boughtAug >= wantAugNum || (boughtAug > 0 && ns.getTimeSinceLastAug() > augInstallTimer))) {
-			if (timer + timeToWaitForAugs < ns.getTimeSinceLastAug())
-				ns.exec("/bn4/restart.js", "home");
-			for (const file of ["/gang/thugGang.js", "/lib/purchaseServers.js"])
-				if (ns.isRunning(file, "home")) ns.kill(file, "home");
-			logA.push("Restarting in " + Math.floor((timer + timeToWaitForAugs - ns.getTimeSinceLastAug()) / 1000) + "s");
-			logPort.write("Restarting in " + Math.floor((timer + timeToWaitForAugs - ns.getTimeSinceLastAug()) / 1000) + "s")
-		}
+		if (ns.singularity.getOwnedAugmentations(true).includes("The Red Pill"))
+			ns.exec("/bn4/restart.js", "home");
+		if (firstRun) {
+			if (wantAugsInstalled && ns.getPlayer().factions.includes("CyberSec") &&
+				(ns.singularity.getAugmentationsFromFaction("CyberSec").every(e => {
+					return ns.singularity.getOwnedAugmentations(true).includes(e);
+				}))) ns.exec("/bn4/restart.js", "home");
+		} else
+			if (wantAugsInstalled && (boughtAug >= wantAugNum || (boughtAug > 0 && ns.getTimeSinceLastAug() > augInstallTimer))) {
+				if (timer + timeToWaitForAugs < ns.getTimeSinceLastAug())
+					ns.exec("/bn4/restart.js", "home");
+				for (const file of ["/gang/thugGang.js", "/lib/purchaseServers.js"])
+					if (ns.isRunning(file, "home")) ns.kill(file, "home");
+				logPort.write("Restarting in " + Math.floor((timer + timeToWaitForAugs - ns.getTimeSinceLastAug()) / 1000) + "s")
+			}
 	}
 
 	/* 	async function backdoors() {
@@ -365,7 +428,6 @@ export async function main(ns) {
 		for (let prog of dwProgs) {
 			if (ns.singularity.getDarkwebProgramCost(prog) < ns.getServerMoneyAvailable("home")) {
 				if (!ns.fileExists(prog, "home")) if (ns.singularity.purchaseProgram(prog)) {
-					logA.push("Bought " + prog);
 					logPort.write("Bought " + prog);
 				}
 			}
@@ -408,7 +470,6 @@ export async function main(ns) {
 				return;
 			}
 		}
-		logA.push("WARN Not enough ram for murder.js");
 		logPort.write("Not enough ram for murder.js");
 	}
 

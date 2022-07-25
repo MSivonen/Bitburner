@@ -7,19 +7,21 @@ import {
 /** @param {NS} ns */
 /** @param {import("../.").NS} ns */
 export async function main(ns) {
-	const hackSingleTarget = false,
+	const
 		maxTargets = 15,
 		saveMoneyAfterPserv = 3,
 		ramNeededForMoreTargets = 10000,
-		batchInterval = 300,
+		batchInterval = 150,
 		shareServers = ns.gang.inGang() ? 7 : 0,
-		useHashes = false;
+		useHashes = true;
 
 
 	ns.disableLog("ALL");
 	ns.tail();
 	ns.clearLog();
-	let singleTarget = "n00dles",
+	let
+		singleTarget = "phantasy",
+		hackSingleTarget = false,
 		target,
 		targetsA = [],
 		prevTarget,
@@ -36,7 +38,8 @@ export async function main(ns) {
 		numberOfTargets = 1,
 		logA = [],
 		logTargetOA = [],
-		logServersA = []; ns.weakenAnalyze
+		logServersA = [],
+		firstRun = ns.getTimeSinceLastAug() == ns.getPlayer().playtimeSinceLastBitnode ? true : false;
 
 	const hackFile = "/ver6/hack6.js",
 		growFile = "/ver6/grow6.js",
@@ -53,19 +56,21 @@ export async function main(ns) {
 
 	for (const serv of getServers(ns)) {
 		await ns.scp(allFiles, serv);
+		await ns.sleep();
 	}
 
 
 	//----------------------------------------MAIN LOOP----------------------------------------MAIN LOOP----------------------------------------
 	while (true) {
-		if (prevTime + 1400 < ns.getTimeSinceLastAug()) {
-			if (ns.getHackingLevel() >= ns.getServerRequiredHackingLevel("phantasy")) singleTarget = "phantasy";
+		if (prevTime + batchInterval * 5 < ns.getTimeSinceLastAug()) {
+			if (!firstRun && ns.getHackingLevel() >= ns.getServerRequiredHackingLevel("phantasy")) singleTarget = "phantasy";
 			updateServers();
-			if (ns.getPurchasedServers().length < ns.getPurchasedServerLimit()) await buyServers(saveMoneyAfterPserv);
-			if (!allHacked) await openPorts2(ns, allServers);
+			await buyServers(saveMoneyAfterPserv);
+
+			if (!allHacked) openPorts2(ns, allServers);
 			targetsA = [];
 			const totalRam = serversOA.reduce((total, serv) => total + serv.maxRam, 0);
-			numberOfTargets = Math.max(1, Math.min(maxTargets, Math.ceil(totalRam / ramNeededForMoreTargets)));
+			numberOfTargets = firstRun ? 1 : Math.max(1, Math.min(maxTargets, Math.ceil(totalRam / ramNeededForMoreTargets)));
 			moneyToSteal = [
 				[0, .03],
 				[6000, .07],
@@ -74,20 +79,24 @@ export async function main(ns) {
 				[120000, .25],
 				[180000, .75]
 			].filter(x => x[0] <= totalRam).pop()[1];
+			moneyToSteal = target == "n00dles" ? moneyToSteal * 4 : moneyToSteal;
+			moneyToSteal = moneyToSteal > 0.75 ? 0.75 : moneyToSteal;
 
 			logServersA[0] = "Total ram in servers: " + ns.nFormat(serversOA.reduce((total, serv) => total + serv.freeRam, 0) * 1e9, "0.0b") + "/" + ns.nFormat(totalRam * 1e9, "0.0b");
 			for (let i = 0; i < numberOfTargets; i++) {
+				if (firstRun) hackSingleTarget = true;
 				target = hackSingleTarget ? singleTarget : totalRam < ramNeededForMoreTargets ? singleTarget : pickTarget(targetsA);
+				if (!ns.hasRootAccess(target)) target = "n00dles";
+				if (ns.getServerRequiredHackingLevel(target) > ns.getHackingLevel()) target = "n00dles";
 				if (!target) continue;
-				if (!ns.hasRootAccess(target)) continue;
 				logTargetOA[i].name = target;
 				// if (target != prevTarget) {
 				// 	//kill all hwg scripts							TODO
 				// 	ns.tprint("WARN Switched target to " + target);
 				// }
 				if (prevTarget != target || numberOfTargets == 1) {
-					if (ns.getServerMoneyAvailable(target) < ns.getServerMaxMoney(target) ||
-						ns.getServerSecurityLevel(target) > ns.getServerMinSecurityLevel(target)) {
+					if (ns.getServerMoneyAvailable(target) * 1.05 < ns.getServerMaxMoney(target) ||
+						ns.getServerSecurityLevel(target) * .95 > ns.getServerMinSecurityLevel(target)) {
 						initializeTarget(target);
 						logTargetOA[i].state = "Initialising, " + ns.nFormat(ns.getServerMoneyAvailable(target), "0.0a") + "/" + ns.nFormat(ns.getServerMaxMoney(target), "0.0a");
 					}
@@ -100,14 +109,14 @@ export async function main(ns) {
 				prevTarget = target;
 			}
 			prevTime = ns.getTimeSinceLastAug();
-
+			if (useHashes) {
+				if (target) ns.exec("/ver6/ver6hacknet.js", "home", 1, target);
+				else ns.exec("/ver6/ver6hacknet.js", "home", 1, "phantasy");
+			}
 		}
 		//ns.tprint("ERROR targetsA: " + targetsA);
 		updateServers();
-		if (useHashes) {
-			if (target) ns.exec("/ver6/ver6hacknet.js", "home", 1, target);
-			else ns.exec("/ver6/ver6hacknet.js", "home", 1, "phantasy");
-		}
+
 		updateTail();
 		await ns.sleep(50);
 	}
@@ -127,10 +136,8 @@ export async function main(ns) {
 			serversOA.splice[i];
 		}
 
-		ns.print("=============MAIN===============")
-		ns.print("");
-		ns.print("");
 		ns.print("=============Servers============")
+		ns.print("Home ram: " + ns.getServerMaxRam("home") + "GB");
 		for (let i = 0; i < 5; i++) {
 			if (logServersA[i]) ns.print(logServersA[i]);
 			else ns.print("");
@@ -139,11 +146,6 @@ export async function main(ns) {
 		ns.print("=============TARGETS============")
 		for (let i = 0; i < numberOfTargets; i++) {
 			ns.print(logTargetOA[i].name + ": " + logTargetOA[i].state);
-		}
-		ns.print("=============LOG================")
-		for (let i = 0; i < 15; i++) {
-			if (logA[i]) ns.print(logA[i]);
-			else ns.print("");
 		}
 	}
 
@@ -269,7 +271,11 @@ export async function main(ns) {
 		let totalServerRam = serversOA.reduce((total, serv) => total + serv.maxRam, 0);
 		let freeServerRam = serversOA.reduce((total, serv) => total + serv.freeRam, 0);
 		if (totalServerRam * .8 < totalScriptRam) {
-			logA.push("Not enough total ram, " + totalScriptRam + "/" + totalServerRam)
+			ns.tprint("Not enough total ram, " + totalScriptRam + "/" + totalServerRam);
+			ns.tprint("hack: " + targetO.hackThreads * hackRam);
+			ns.tprint("weak1: " + targetO.weak1Threads * weakRam);
+			ns.tprint("weak2: " + targetO.weak2Threads * weakRam);
+			ns.tprint("grow: " + targetO.growThreads * growRam);
 			//targetO = await getTargetObject("n00dles");
 		}
 
@@ -421,7 +427,7 @@ export async function main(ns) {
 			}
 		}
 
-		targetO.growThreads = Math.max(2, Math.ceil(threads * 1.15));
+		targetO.growThreads = Math.max(2, Math.ceil(threads * 1.2));
 		targetO.growTime = Math.ceil(ns.formulas.hacking.growTime(serverObject, playerObject));
 
 		targetO.hackThreads = Math.max(1, Math.floor(
@@ -430,7 +436,7 @@ export async function main(ns) {
 		targetO.hackTime = Math.ceil(ns.formulas.hacking.hackTime(serverObject, playerObject));
 
 		targetO.weak1Threads = Math.max(2, Math.ceil(
-			ns.hackAnalyzeSecurity(targetO.hackThreads * 1.1, targetServ)
+			ns.hackAnalyzeSecurity(targetO.hackThreads * 1.2, targetServ)
 			/ ns.weakenAnalyze(1, numCores)
 		));
 
@@ -519,29 +525,18 @@ export async function main(ns) {
 	}
 
 	/** @param {import("../.").NS} ns */
-	async function openPorts2(ns, servers) {
+	function openPorts2(ns, servers) {
 		let hacked = 0;
-		let progs = ["brutessh.exe", "ftpcrack.exe", "relaysmtp.exe", "httpworm.exe", "sqlinject.exe", "dsfsd"];
+		let progs = ["brutessh.exe", "ftpcrack.exe", "relaysmtp.exe", "httpworm.exe", "sqlinject.exe"];
 		const ownedProgs = progs.filter((x) => ns.fileExists(x));
 		for (const serv of servers) {
-			if (serv.startsWith("hackne")) continue;
 			for (const prog of ownedProgs) {
 				switch (prog) {
-					case "brutessh.exe":
-						ns.brutessh(serv);
-						break;
-					case "ftpcrack.exe":
-						ns.ftpcrack(serv);
-						break;
-					case "relaysmtp.exe":
-						ns.relaysmtp(serv);
-						break;
-					case "httpworm.exe":
-						ns.httpworm(serv);
-						break;
-					case "sqlinject.exe":
-						ns.sqlinject(serv);
-						break;
+					case "brutessh.exe": ns.brutessh(serv); break;
+					case "ftpcrack.exe": ns.ftpcrack(serv); break;
+					case "relaysmtp.exe": ns.relaysmtp(serv); break;
+					case "httpworm.exe": ns.httpworm(serv); break;
+					case "sqlinject.exe": ns.sqlinject(serv); break;
 				}
 			}
 			if (ns.getServerNumPortsRequired(serv) <= ownedProgs.length) {

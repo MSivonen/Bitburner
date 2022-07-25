@@ -18,6 +18,13 @@ import { getBestFaction } from "/lib/includes.js"
 /** @param {import('../.').NS} ns */
 export async function main(ns) {
 
+    function travel(slvNum, city) {
+        if (ns.sleeve.getInformation(slvNum).city != city)
+            if (!ns.sleeve.travel(slvNum, city)) {
+                logA.push("ERROR not enough money for sleeve " + slvNum + " to travel to " + city);
+                logPort.write("ERROR not enough money for sleeve " + slvNum + " to travel to " + city);
+            }
+    }
 
     const logPort = ns.getPortHandle(1);
     const sleevePort = ns.getPortHandle(2);
@@ -52,31 +59,29 @@ export async function main(ns) {
 
 
             if (!ns.gang.inGang()) {
-                if (ns.sleeve.getInformation(slvNum).city != "Aevum")
-                    if (!ns.sleeve.travel(slvNum, "Aevum")) {
-                        logA.push("ERROR not enough money for sleeve " + slvNum + " to travel to Aevum")
-                        logPort.write("ERROR not enough money for sleeve " + slvNum + " to travel to Aevum");
-                        continue;
-                    }
                 let agi = 60, str = 70, dex = 60, def = 60;
 
                 if (ns.sleeve.getSleeveStats(slvNum).strength < str) {
-                    ns.sleeve.setToGymWorkout(slvNum, "Crush Fitness Gym", "Strength");
+                    travel(slvNum, "Sector-12");
+                    ns.sleeve.setToGymWorkout(slvNum, "Powerhouse Gym", "Strength");
                     sleeveText[slvNum] = "Sleeve" + slvNum + " training strength: " + ns.sleeve.getSleeveStats(slvNum).strength + "/" + str;
                     continue;
                 }
                 if (ns.sleeve.getSleeveStats(slvNum).agility < agi) {
-                    ns.sleeve.setToGymWorkout(slvNum, "Crush Fitness Gym", "Agility");
+                    travel(slvNum, "Sector-12");
+                    ns.sleeve.setToGymWorkout(slvNum, "Powerhouse Gym", "Agility");
                     sleeveText[slvNum] = "Sleeve" + slvNum + " training agility: " + ns.sleeve.getSleeveStats(slvNum).agility + "/" + agi;
                     continue;
                 }
                 if (ns.sleeve.getSleeveStats(slvNum).defense < def) {
-                    ns.sleeve.setToGymWorkout(slvNum, "Crush Fitness Gym", "defense");
+                    travel(slvNum, "Sector-12");
+                    ns.sleeve.setToGymWorkout(slvNum, "Powerhouse Gym", "defense");
                     sleeveText[slvNum] = "Sleeve" + slvNum + " training defense: " + ns.sleeve.getSleeveStats(slvNum).defense + "/" + def;
                     continue;
                 }
                 if (ns.sleeve.getSleeveStats(slvNum).dexterity < dex) {
-                    ns.sleeve.setToGymWorkout(slvNum, "Crush Fitness Gym", "Dexterity");
+                    travel(slvNum, "Sector-12");
+                    ns.sleeve.setToGymWorkout(slvNum, "Powerhouse Gym", "Dexterity");
                     sleeveText[slvNum] = "Sleeve" + slvNum + " training dexterity: " + ns.sleeve.getSleeveStats(slvNum).dexterity + "/" + dex;
                     continue;
                 }
@@ -89,7 +94,8 @@ export async function main(ns) {
 
             else if (ns.gang.inGang()) {
                 if (ns.sleeve.getSleeveStats(slvNum).hacking < 30) {
-                    ns.sleeve.setToUniversityCourse(slvNum, "summit university", "Algorithms");
+                    travel(slvNum, "Volhaven");
+                    ns.sleeve.setToUniversityCourse(slvNum, "ZB Institute of Technology", "Algorithms");
                     sleeveText[slvNum] = "Sleeve" + slvNum + " is studying algorithms";
                     continue;
                 }
@@ -104,7 +110,7 @@ export async function main(ns) {
                     { "Four Sigma": "Four Sigma" },
                     { "KuaiGong International": "KuaiGong International" },
                     { "Fulcrum Technologies": "Fulcrum Secret Technologies" },
-                    { "Omnia Cybersystems": "OmniTek Incorporated" },
+                    //{ "Omnia Cybersystems": "OmniTek Incorporated" },
                     { "NWO": "NWO" }
                 ];
 
@@ -156,11 +162,11 @@ export async function main(ns) {
                 sleeveText[slvNum] = "Sleeve " + slvNum + " syncing";
                 continue;
             }
-            if (ns.sleeve.getSleeveStats(slvNum).shock > 0) {
+            /*if (ns.sleeve.getSleeveStats(slvNum).shock > 0) {
                 ns.sleeve.setToShockRecovery(slvNum);
                 sleeveText[slvNum] = "Sleeve " + slvNum + " getting shocks: " + ns.sleeve.getSleeveStats(slvNum).shock;
                 continue;
-            }
+            }*/
 
             if (slvNum % 2 == 1) {
                 ns.sleeve.setToUniversityCourse(slvNum, "summit university", "Algorithms");

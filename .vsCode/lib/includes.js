@@ -1,20 +1,37 @@
-//import { printArray } from "/lib/includes.js"
-//import { openPorts } from "/lib/includes.js"
-//import { objectArraySort } from "/lib/includes.js"
-//import { getServers } from "/lib/includes.js"
-//import { getServersWithRam } from "/lib/includes.js"
-//import { getServersWithMoney } from "/lib/includes.js"
-//import { secondsToHMS } from "/lib/includes.js"
-//import { killAllButThis } from "/lib/includes.js"
-//import { connecter } from "/lib/includes.js"
-//import { randomInt } from "/lib/includes.js"
-//import { map } from "/lib/includes.js"
-//import { readFromJSON } from "/lib/includes.js"
-//import { writeToJSON } from "/lib/includes.js"
-//import { openPorts2 } from "/lib/includes.js"
-//import { getBestFaction } from "/lib/includes.js"
+/*import {
+	printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,
+	secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, openPorts2, getBestFaction, col
+}
+	from "/lib/includes.js"*/
 
-export function getBestFaction(ns, excluded = [], wantHackNet = true) {	//find the aug that needs the least rep to get
+export const col = {
+	"r": "\x1b[31m",
+	"g": "\x1b[32m",
+	"b": "\x1b[34m",
+	"c": "\x1b[36m",
+	"m": "\x1b[35m",
+	"y": "\x1b[33m",
+	"bk": "\x1b[30m",
+	"w": "\x1b[37m",
+	"off": "\x1b[0m",
+	"bold": "\x1b[1m",
+	"underline": "\x1b[4m"
+}
+
+export function getBestFaction(ns, excluded = [], wantHackNet = true, firstRun = false) {	//find the aug that needs the least rep to get
+	if (firstRun) {
+		if (ns.getPlayer().factions.includes("CyberSec") &&
+			!ns.singularity.getAugmentationsFromFaction("CyberSec").every(e => {
+				return ns.singularity.getOwnedAugmentations(true).includes(e);
+			})) {
+			const augs = ns.singularity.getAugmentationsFromFaction("CyberSec").filter(e => {
+				return !ns.singularity.getOwnedAugmentations(true).includes(e);
+			});
+			if (augs.length != 0)
+				if (ns.singularity.getAugmentationRepReq(augs[augs.length - 1]) > ns.singularity.getFactionRep("CyberSec"))
+					return ({ faction: "CyberSec", aug: augs.pop() });
+		}
+	}
 	const gangFact = ns.gang.inGang() ? ns.gang.getGangInformation().faction : null;
 	let bestAugOfEachFaction = [];
 	let wantedAugs = [
@@ -136,14 +153,12 @@ export async function openPorts2(ns, servers) {
 	if (hacked == servers.length) allHacked = true;
 }
 
-export async function readFromJSON(ns, filename = "/test/jsontest.txt") {
-	let readed = await ns.read(filename);
-	return JSON.parse(readed);
+export function readFromJSON(ns, filename = "/test/jsontest.txt") {
+	return JSON.parse(ns.read(filename));
 }
 
 export async function writeToJSON(ns, jsonObject, filename = "/test/jsontest.txt") {
-	let toWrite = JSON.stringify(jsonObject);
-	await ns.write(filename, toWrite, "w");
+	await ns.write(filename, JSON.stringify(jsonObject), "w");
 }
 
 /**Map input value to output range. 
@@ -155,8 +170,9 @@ export function map(number, inMin, inMax, outMin, outMax) {
 /**Random int between minVal and maxVal
  * @param minVal {number} minimum value 
  * @param maxVal {number} maximum value */
-export function randomInt(minVal = 0, maxVal = 1) {
-	return Math.round((Math.random()) * (maxVal + .9999 - minVal) + minVal - .5);
+export function randomInt(minVal = 0, maxVal) {
+	if (typeof maxVal == "undefined") { maxVal = minVal; minVal = 0; }
+	return minVal + Math.floor((Math.random()) * (maxVal + .9999 - minVal));
 }
 
 export function connecter(ns, targ) {

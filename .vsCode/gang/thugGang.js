@@ -1,10 +1,8 @@
-import { printArray } from "/lib/includes.js"
-//import { openPorts } from "/lib/includes.js"
-//import { objectArraySort } from "/lib/includes.js"
-//import { getServers } from "/lib/includes.js"
-//import { getServersWithRam } from "/lib/includes.js"
-//import { getServersWithMoney } from "/lib/includes.js"
-//import { secondsToHMS } from "/lib/includes.js"
+import {
+	printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,
+	secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, openPorts2, getBestFaction
+}
+	from "/lib/includes.js"
 
 
 /*TASKS
@@ -67,7 +65,7 @@ export async function main(ns) {
 
 		async ascend() {
 			if (this.prevAscend + 10000 < ns.getTimeSinceLastAug()) {
-				if (ns.gang.getAscensionResult(this.name).hack > 1.5 || ns.gang.getAscensionResult(this.name).str > 1.5) {
+				if (ns.gang.getAscensionResult(this.name).hack > 1.2 || ns.gang.getAscensionResult(this.name).str > 1.2) {
 					ns.gang.ascendMember(this.name);
 					ns.print(this.name + " ascended");
 					this.prevAscend = ns.getTimeSinceLastAug();
@@ -87,7 +85,6 @@ export async function main(ns) {
 		}
 
 		setTask() {
-
 			if (warFareTimer.detected != 0 &&
 				(ns.getTimeSinceLastAug() - warFareTimer.detected) % 20000 > 19750 ||
 				(ns.getTimeSinceLastAug() - warFareTimer.detected) % 20000 < 250) {
@@ -106,14 +103,6 @@ export async function main(ns) {
 						this.prevChange = ns.getTimeSinceLastAug() + 10000;
 					}
 				}
-				/*else if (ns.gang.getMemberInformation(this.name).str > 20
-					&& (ns.getTimeSinceLastAug() % 100000 > 10000 + this.startTime && ns.getTimeSinceLastAug() % 100000 < 20000 + this.startTime)) { //do terr warf
-					if (!ns.gang.getGangInformation().territoryWarfareEngaged && this.prevChange < ns.getTimeSinceLastAug()) {
-						this.task = "Territory Warfare";
-						ns.print(this.name + " is doing " + this.task);
-						this.prevChange = ns.getTimeSinceLastAug() + 20000;
-					}
-				}*/
 				else {
 					if (wanted && this.prevChange < ns.getTimeSinceLastAug()) {
 						this.task = niceThings[randomInt(niceThings.length - 1)];
@@ -148,14 +137,8 @@ export async function main(ns) {
 		}
 
 		getWantedItems() {
-			this.ownedEquipmentA = [];
-			let tempA = ns.gang.getMemberInformation(this.name);
-			for (let temp of tempA.upgrades) {
-				this.ownedEquipmentA.push(temp);
-			}
-			for (let temp of tempA.augmentations) {
-				this.ownedEquipmentA.push(temp);
-			}
+			this.ownedEquipmentA = [...ns.gang.getMemberInformation(this.name).upgrades,
+			...ns.gang.getMemberInformation(this.name).augmentations];
 			let tempArr = [];
 			for (let equ of allEquipmentsOA) {
 				if ((equ.type == "Rootkit" || equ.type == "Augmentation")
@@ -180,13 +163,12 @@ export async function main(ns) {
 
 
 	ns.disableLog("ALL");
-	let memberNames = ns.gang.getMemberNames();
+	//let memberNames = ns.gang.getMemberNames();
 	let members = [];
 	let allEquipmentsOA = [];
 
-	ns.tail();
-	for (let i = 0; i < memberNames.length; i++) {
-		members[i] = new Member(memberNames[i]);
+	for (const guy of ns.gang.getMemberNames()) {
+		members.push(new Member(guy));
 	}
 	ns.clearLog();
 	let equipmentA = [];
@@ -204,24 +186,18 @@ export async function main(ns) {
 	//======================================================================MAIN LOOP======================================================================
 	//======================================================================MAIN LOOP======================================================================
 	while (true) {
-		for (const guy of memberNames)
-			if (!members.find(member => member.name == guy)) {
-				ns.tprint("Lookie lookie I founded it!");
-			}
+		if (members.length > ns.gang.getMemberNames().length)
+			members = members.filter(member => ns.gang.getMemberNames().includes(member.name));
 
+		if (ns.gang.recruitMember(randomName())) {
+			members.push(new Member(ns.gang.getMemberNames().pop()));
+		}
 
 		if (warFareTimer.detected == 0) {
 			if (warFareTimer.temp != ns.gang.getOtherGangInformation().Tetrads.power) {
 				warFareTimer.detected = ns.getTimeSinceLastAug();
 			}
 			else warFareTimer.temp = ns.gang.getOtherGangInformation().Tetrads.power;
-		}
-
-		if (ns.gang.canRecruitMember()) {
-			memberNames.push(randomName());
-			ns.gang.recruitMember(memberNames[memberNames.length - 1]);
-			let ukko = new Member(memberNames[memberNames.length - 1]);
-			members.push(ukko);
 		}
 
 		for (let member of members) {
@@ -269,9 +245,4 @@ export async function main(ns) {
 		name = name[0].toUpperCase() + name.substring(1)
 		return name;
 	}
-}
-
-/**Random int between 0 and val * @param val {number} max value */
-function randomInt(val = 1) {
-	return Math.round(Math.random() * val);
 }

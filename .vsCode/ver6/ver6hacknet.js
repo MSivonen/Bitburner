@@ -19,6 +19,6 @@ export async function main(ns) {
     const targ = ns.args[0];
     try { ns.hacknet.upgradeRam(0); }
     catch { ns.print("no hacknet nodes"); }
-    if (ns.getServerSecurityLevel(targ) > 1) ns.hacknet.spendHashes("Reduce Minimum Security", targ);
+    if (ns.getServerSecurityLevel(targ) > 1.1) ns.hacknet.spendHashes("Reduce Minimum Security", targ);
     ns.hacknet.spendHashes("Increase Maximum Money", targ);
 }

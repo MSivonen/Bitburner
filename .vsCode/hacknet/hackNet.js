@@ -19,8 +19,8 @@ export async function main(ns) {
 
     ns.disableLog("ALL");
 
-    const moneyToSpend = 0.4;//20% of money
-    let sellForMoney = true,
+    const moneyToSpend = 0.4;//% of money
+    let sellForMoney = false,
         hackNetServersCA = [];
 
     class HackNetServer {
@@ -91,8 +91,9 @@ export async function main(ns) {
 
 
         sellForMoney = ns.hacknet.hashCapacity() * .9 < ns.hacknet.numHashes() ? true : false;
-        if (ns.singularity.getOwnedAugmentations(true).length != ns.singularity.getOwnedAugmentations(false).length ||
-            ns.getTimeSinceLastAug() > 1000 * 60 * 60 * 12) sellForMoney = true;
+        if ((ns.singularity.getOwnedAugmentations(true).length != ns.singularity.getOwnedAugmentations(false).length ||
+            ns.getTimeSinceLastAug() > 1000 * 60 * 60 * 12) &&
+            ns.getTimeSinceLastAug() != ns.getPlayer().playtimeSinceLastBitnode) sellForMoney = true;
         if (sellForMoney) {
             for (let i = 0; i < 100; i++)ns.hacknet.spendHashes("Sell for Money");
         }

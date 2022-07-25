@@ -4,17 +4,18 @@ export async function main(ns) {
 	ns.tail();
 	let logAreas = doc.querySelectorAll(".react-draggable .react-resizable");
 	let logArea = logAreas[logAreas.length - 1];
-	logArea.children[0].style.display = "none";
+	logArea.children[1].style.display = "none";
 	let canvas = logArea.appendChild(doc.createElement("canvas")),
 		context = canvas.getContext("2d");
 	canvas.width = "500";
 	canvas.height = "500";
 	canvas.style.height = "100%";
 	canvas.style.width = "100%";
+	logArea.style.width = "600px";
 
 	var rockets = [];
 	let gravity = .04;
-	let friction = .98;
+	let friction = .90;
 	let width = 500;
 	let height = 500;
 
@@ -24,7 +25,7 @@ export async function main(ns) {
 			//ns.tprint(x_ + " " + y_);
 
 			this.kipunat = [];
-			this.rocket = new Particle(x_, y_, ys_, xs_, 30);
+			this.rocket = new Particle(x_, y_, ys_, xs_, 30, 0.08);
 			this.dead = false;
 			this.end = false;
 			this.life = 70 + Math.round(Math.random() * 30);
@@ -57,14 +58,14 @@ export async function main(ns) {
 				let sss_y = Math.cos(angle) * Math.random();
 				sss_x *= map(Math.random(), 0, 1, height / 500, .7 * height / 500) * this.size;
 				sss_y *= map(Math.random(), 0, 1, height / 500, .7 * height / 500) * this.size;
-				this.kipunat.push(new Particle(this.rocket.pos.x, this.rocket.pos.y, sss_x, sss_y, this.col));
+				this.kipunat.push(new Particle(this.rocket.pos.x, this.rocket.pos.y, sss_x, sss_y, this.col, 0.08));
 			}
 		}
 	}
 
 	class Particle {
 
-		constructor(x_, y_, ys_, xs_, col_) {
+		constructor(x_, y_, ys_, xs_, col_, weight_) {
 			this.pos = { x: x_, y: y_ };
 			this.vel = { x: xs_, y: ys_ };
 			this.acc = { x: 0, y: 0 };
@@ -78,6 +79,7 @@ export async function main(ns) {
 			this.col = col_;
 			this.vel.y = this.ys;
 			this.vel.x = this.xs;
+			this.weight = weight_;
 			//ns.tprint(this.pos.x + " " + this.pos.y);
 		}
 
@@ -95,11 +97,11 @@ export async function main(ns) {
 		}
 
 		update() {
-			this.acc.y += gravity;
+			this.acc.y += gravity - this.weight / 3;
 			this.vel.x += this.acc.x;
 			this.vel.y += this.acc.y;
-			this.vel.x *= friction;
-			this.vel.y *= friction;
+			this.vel.x *= (friction + this.weight);
+			this.vel.y *= (friction + this.weight);
 			this.pos.x += this.vel.x;
 			this.pos.y += this.vel.y;
 			this.acc.x = 0;
@@ -125,7 +127,8 @@ export async function main(ns) {
 			rockets.push(new Raketti(width / 2, height,
 				map(Math.random(), 0, 1, -height / 30, -height / 60),
 				map(Math.random(), 0, 1, -width / 80, width / 80),
-				Math.random() * 255));
+				Math.random() * 255,
+				0.08));
 		}
 
 		for (let i = rockets.length - 1; i >= 0; i--) {

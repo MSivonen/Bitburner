@@ -1,9 +1,9 @@
 /** @param {NS} ns */
+/** @param {import("../.").NS} ns */
 export async function main(ns) {
   ns.tail();
-  let logAreas = document.querySelectorAll(".react-draggable .react-resizable");
-  let logArea = logAreas[logAreas.length - 1];
-  logArea.children[0].style.display = "none";
+  let logArea = [...document.querySelectorAll(".react-draggable .react-resizable")].pop();
+  logArea.children[1].style.display = "none";
   let canvas = logArea.appendChild(document.createElement("canvas")),
     context = canvas.getContext("2d");
   canvas.width = "500";
@@ -14,6 +14,7 @@ export async function main(ns) {
   let i = 0;
   let posY = 0;
   let posX = 0;
+  ns.disableLog("ALL");
 
   while (true) {
     i += 0.05;
