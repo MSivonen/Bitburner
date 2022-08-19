@@ -53,7 +53,7 @@ export async function main(ns) {
                         0,       //ns.hacknet.getNodeStats(this.index).ramUsed,
                         ns.hacknet.getNodeStats(this.index).ram + acc[1],
                         ns.hacknet.getNodeStats(this.index).cores + acc[2],
-                        ns.getPlayer().hacknet_node_money_mult)
+                        ns.getPlayer().mults.hacknet_node_money)
                         -
                         ns.hacknet.getNodeStats(this.index).production);
                 if (profit < best) {
@@ -62,7 +62,7 @@ export async function main(ns) {
                 }
                 //if (this.index == 4) ns.tprint("profit: " + profit / 1e6 + " best: " + best / 1e6 + " besti: " + besti);
             }
-            // ns.tprint(best + " " + besti + " " + this.index);
+             ns.tprint(best + " " + besti + " " + this.index);
 
             //return string+cost
             return [["upgradeLevel", "upgradeRam", "upgradeCore"][besti], ns.hacknet[statNames[besti]](this.index)];
@@ -80,6 +80,14 @@ export async function main(ns) {
     for (const serv of hackNetServersCA) serv.update();
 
     while (true) {
+        let g_sets = readFromJSON(ns, "g_settings.txt");
+
+        while (!g_sets.wantHackNet) {
+            g_sets = readFromJSON(ns, "g_settings.txt");
+            ns.tprint("Hacknet paused")
+            await ns.sleep(2000);
+        }
+
         if (ns.getTimeSinceLastAug() % 120000 < 60000) {
             if (ns.getTimeSinceLastAug() < 1000 * 60 * 60 * 12) for (const serv of hackNetServersCA) serv.update();
             if (ns.getServerMoneyAvailable("home") * moneyToSpend > ns.hacknet.getPurchaseNodeCost() &&

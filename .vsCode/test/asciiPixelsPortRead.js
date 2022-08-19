@@ -8,15 +8,17 @@ export async function main(ns) {
     let logArea = logAreas[logAreas.length - 1];
     logArea.children[1].style.display = "none";
     let text = doc.createTextNode("Hello world");
-    logArea.style.backgroundColor = "#000000";
-    logArea.style.color = "#20AB20";
-    logArea.style.font = "18px Courier";
+    logArea.style = "white-space:pre; font-family: 'Lucida Console'; color: #20AB20; font-size: 10px; text-align: center; background-color: black";
+
     logArea.appendChild(text);
 
 
     ns.disableLog("ALL");
-    const pixX = 50, pixY = 30;
+    const pixX = 78, pixY = 37,
+        logPort = ns.getPortHandle(8);
+
     let pixels = new Array(pixY);
+    let chars = "01";
 
     for (let i = 0; i < pixY; i++) {
         pixels[i] = new Array(pixX);
@@ -27,16 +29,21 @@ export async function main(ns) {
         }
     }
 
-    let x, y, iter = 0;
-    const chars = "qwertyuiopåpasdfghjklöäzxcvbnm,.QWERTYUIOPÅASDFGHJKLÖÄZXCVBNM;:1234567890+!¤%&/()=";
+    let logText = "";
 
     while (true) {
+        while (logPort.empty()) await ns.sleep(50);
+        while (!logPort.empty()) {
+            logText = logPort.read();
+            await ns.sleep(1);
+        }
         // set xy coordinates
-        for (let y = 0; y < pixels.length; y++)
-            for (let x = 0; x < pixels[0].length; x++)
-                pixels[y][x] = chars[Math.floor(Math.random() * chars.length)];
+        for (let y = 0; y < pixels.length; y++) {
+            for (let x = 0; x < pixels[0].length; x++) {
+                pixels[y][x] = logText[y * pixX + x] === undefined ? chars[Math.round(Math.random())] : logText[y * pixX + x];
+            }
+        }
         display();
-        iter += .05
         await ns.sleep(1000 / 60);
     }
 

@@ -45,6 +45,9 @@ export async function main(ns) {
             case "Find Largest Prime Factor":
                 findLargestPrimeFactor(contr.contract, contr.server);
                 break;
+            case "Sanitize Parentheses in Expression":
+                sanitizeParenthesesInExpression(contr.contract, contr.server);
+                break;
             default:
                 ns.tprint("WARN " + contr.contractType + " found from " + contr.server + ", it does not have a solver yet.");
                 ns.tprint("ERROR connecter " + contr.server);
@@ -66,6 +69,76 @@ export async function main(ns) {
         //ns.tprint(ns.codingcontract.attempt(solved, contract, server, { returnReward: true }));
     }
 
+    function sanitizeParenthesesInExpression(contract, server) { //https://pastebin.com/8Y0Fqwfu
+        let inputString = ns.codingcontract.getData(contract, server);
+        let solved = sanitizeParentheses(inputString);
+
+        ns.tprint("INFO Solving " + ns.codingcontract.getContractType(contract, server) + " at " + server);
+        ns.tprint("Original string: " + inputString);
+
+        function sanitizeParentheses(data) {
+            var solution = Sanitize(data);
+            if (solution == null) return ('[""]');
+            else return ("[" + solution.join(",") + "]");
+        }
+
+        function Sanitize_removeOneParth(item) {
+            var possibleAnswers = [];
+            for (let i = 0; i < item.length; i++) {
+                if (item[i].toLowerCase().indexOf("(") === -1 && item[i].toLowerCase().indexOf(")") === -1) {
+                    continue
+                }
+                let possible = item.substring(0, i) + item.substring(i + 1);
+                possibleAnswers.push(possible)
+            }
+            return possibleAnswers
+        }
+
+        function Sanitize_isValid(item) {
+            var unclosed = 0
+            for (var i = 0; i < item.length; i++) {
+                if (item[i] == "(") { unclosed++ }
+                else if (item[i] == ")") { unclosed-- }
+                if (unclosed < 0) { return false }
+            }
+            return unclosed == 0
+        }
+
+        function Sanitize(data) {
+            var currentPossible = [data]
+            for (var i = 0; i < currentPossible.length; i++) {
+                var newPossible = new Set()
+                for (var j = 0; j < currentPossible.length; j++) {
+                    let newRemovedPossible = Sanitize_removeOneParth(currentPossible[j])
+                    for (let item of newRemovedPossible) {
+                        newPossible.add(item)
+                    }
+                }
+                var validBoolList = []
+                for (let item of newPossible) {
+                    validBoolList.push(Sanitize_isValid(item))
+                }
+                if (validBoolList.includes(true)) {
+                    var finalList = []
+                    newPossible = [...newPossible]
+                    for (var j = 0; j < validBoolList.length; j++) {
+                        if (validBoolList[j]) {
+                            finalList.push(newPossible[j])
+                        }
+                    }
+                    finalList = new Set(finalList)
+                    return [...finalList]
+                }
+                currentPossible = [...newPossible]
+            }
+            return null
+        }
+
+        ns.tprint("Solved:");
+        ns.tprint(solved);
+        ns.tprint("Reward:");
+        ns.tprint(ns.codingcontract.attempt(solved, contract, server, { returnReward: true }));
+    }
 
     function findLargestPrimeFactor(contract, server) {
         let inputNumber = ns.codingcontract.getData(contract, server),

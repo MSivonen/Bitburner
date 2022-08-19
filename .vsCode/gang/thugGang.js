@@ -95,7 +95,7 @@ export async function main(ns) {
 				wanted = ns.gang.getGangInformation().wantedPenalty < maxWantedPenalty ? 1 : wanted;
 				wanted = ns.gang.getGangInformation().wantedPenalty > 0.95 ? 0 : wanted;
 				wanted = ns.gang.getGangInformation().wantedLevel < 2 ? 0 : wanted;
-				if (ns.gang.getMemberInformation(this.name).str < 20 || ns.getTimeSinceLastAug() % 100000 < 10000 + this.startTime) { //do training
+				if (ns.gang.getMemberInformation(this.name).str < 100 || ns.getTimeSinceLastAug() % 100000 < 10000 + this.startTime) { //do training
 					if (this.prevChange < ns.getTimeSinceLastAug()) {
 						let tempTask = randomInt(2);
 						this.task = trainings[tempTask];

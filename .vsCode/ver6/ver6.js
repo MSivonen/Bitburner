@@ -4,9 +4,23 @@ import {
 }
 	from "/lib/includes.js"
 
+
+
+
 /** @param {NS} ns */
 /** @param {import("../.").NS} ns */
 export async function main(ns) {
+
+	let doc = eval("document");
+	ns.tail();
+	const tailElement = [...doc.querySelectorAll(".react-draggable")].pop();
+	tailElement.style.left = "1200px";
+	tailElement.style.top = "10px";
+	let tailElement2 = tailElement.firstChild;
+	tailElement2.style.width = "430px"; //default 500px
+	tailElement2.style.height = "500px"; //default 500px
+
+
 	const
 		maxTargets = 15,
 		saveMoneyAfterPserv = 3,
@@ -17,8 +31,8 @@ export async function main(ns) {
 
 
 	ns.disableLog("ALL");
-	ns.tail();
 	ns.clearLog();
+
 	let
 		singleTarget = "phantasy",
 		hackSingleTarget = false,
@@ -65,19 +79,21 @@ export async function main(ns) {
 		if (prevTime + batchInterval * 5 < ns.getTimeSinceLastAug()) {
 			if (!firstRun && ns.getHackingLevel() >= ns.getServerRequiredHackingLevel("phantasy")) singleTarget = "phantasy";
 			updateServers();
-			await buyServers(saveMoneyAfterPserv);
+			buyServers();
+			await initPservers();
 
 			if (!allHacked) openPorts2(ns, allServers);
 			targetsA = [];
 			const totalRam = serversOA.reduce((total, serv) => total + serv.maxRam, 0);
 			numberOfTargets = firstRun ? 1 : Math.max(1, Math.min(maxTargets, Math.ceil(totalRam / ramNeededForMoreTargets)));
 			moneyToSteal = [
-				[0, .03],
-				[6000, .07],
-				[30000, .15],
-				[60000, .2],
+				[0, .01],
+				[6000, .02],
+				[30000, .04],
+				[60000, .08],
 				[120000, .25],
-				[180000, .75]
+				[180000, .3],
+				[360000, .75]
 			].filter(x => x[0] <= totalRam).pop()[1];
 			moneyToSteal = target == "n00dles" ? moneyToSteal * 4 : moneyToSteal;
 			moneyToSteal = moneyToSteal > 0.75 ? 0.75 : moneyToSteal;
@@ -167,19 +183,15 @@ export async function main(ns) {
 				}
 			}
 		}
-		let moneyTXT;
-		let tempGB;
+		let tempGB = 0;
 		try {
-			tempGB = ns.getServerMaxRam("perkele0")
-			moneyTXT = ns.nFormat(ns.getPurchasedServerCost(tempGB * 2) * ns.getPurchasedServerLimit(), "0.00a");
-			tempGB = ns.nFormat(tempGB * 1e9, "0b");
-			logServersA[1] = ns.getPurchasedServers().length + " personal servers: " + tempGB;
-			logServersA[2] = "Next servers: " + moneyTXT + " moneys total.";
+			for (const s of ns.getPurchasedServers())
+				tempGB += ns.getServerMaxRam(s);
+			tempGB = ns.nFormat(tempGB * 1e9, "0.00b");
+			logServersA[1] = ns.getPurchasedServers().length + " personal servers with total ram: " + tempGB;
 		}
 		catch {
-			moneyTXT = 0
 			logServersA[1] = "No servers purchased";
-			logServersA[2] = "";
 		}
 		logServersA[3] = 0;
 
@@ -218,9 +230,9 @@ export async function main(ns) {
 			updateServers();
 
 			let maxMoney = ns.getServerMaxMoney(targ),
-				currentMoney = ns.getServerMoneyAvailable(targ),
+				currentMoney = ns.getServerMoneyAvailable(targ) + 100,
 				minSec = ns.getServerMinSecurityLevel(targ),
-				growThreads = Math.ceil(ns.growthAnalyze(targ, maxMoney / currentMoney) * 1.2),
+				growThreads = Math.ceil(ns.growthAnalyze(targ, Math.max(10000, (maxMoney / currentMoney) * 1.2))),
 				secu = ns.getServerSecurityLevel(targ) + ns.growthAnalyzeSecurity(growThreads, targ, 1),
 				weakThreads = Math.ceil((secu - minSec) / ns.weakenAnalyze(1));
 
@@ -451,58 +463,66 @@ export async function main(ns) {
 		return targetO;
 	}
 
-	/**@param moneyToSpend {number} 2 = use 1/2 of money, 4 = use 1/4 of money etc... ROUNDED UP, up to 2/2, 2/4, etc*/
-	async function buyServers(moneyToSpend = 2, maxRam = ns.getPurchasedServerMaxRam()) {
+	function buyServers(maxRam = ns.getPurchasedServerMaxRam()) {
 		const maxServers = ns.getPurchasedServerLimit();
 		if (maxServers == 0) return;
-		let ram = 4; //min ram to have
+		let ram,
+			biggestServer,
+			smallestServer,
+			serversOA = [];
 		let buy = false;
-		if (ns.serverExists("perkele0")) { //name of first purchased server
-			if (maxRam <= ns.getServerMaxRam("perkele0")) return;
-			ram = ns.getServerMaxRam("perkele0") * 2, ram; //set ram to current ram
+		let allPservers = ns.getPurchasedServers();
+		if (allPservers.length > 0) {
+			allPservers.forEach(s => { serversOA.push({ name: s, ram: ns.getServerMaxRam(s) }) });
+			biggestServer = serversOA.reduce((prev, current) => {
+				return (prev.ram > current.ram) ? prev : current
+			});
+			smallestServer = serversOA.reduce((prev, current) => {
+				return (prev.ram < current.ram) ? prev : current
+			});
 		}
-		while (ram < maxRam && ns.getServerMoneyAvailable("home") / moneyToSpend > ns.getPurchasedServerCost(ram) * maxServers) {
+
+		if (biggestServer == undefined) ram = 8; //no pservers
+		else ram = biggestServer.ram;
+
+		while (ram < maxRam && ns.getServerMoneyAvailable("home") > ns.getPurchasedServerCost(ram * 2)) {
 			ram *= 2; //increase ram until happy
 			buy = true;
-			await ns.sleep();
 		}
 
-		if (buy) { //don't buy potatoes
+		if (buy) {
 			if (ram > maxRam) return;
-			for (const serv of ns.getPurchasedServers()) { //delete servers
-				ns.killall(serv);
-				ns.deleteServer(serv);
+			if (serversOA.length == maxServers) {
+				ns.killall(smallestServer.name);
+				ns.deleteServer(smallestServer.name);
 			}
-
-			let bought = 0;
-			for (let i = 0; i < maxServers; i++) { //buy new servers
-				if (ns.getServerMoneyAvailable("home") > ns.getPurchasedServerCost(ram)) { //double check money, if some other script joinks some of it while this is running... Is that even possible, idk. Now it isn't.
-					ns.purchaseServer("perkele" + i, ram);
-					bought++;
-					await ns.scp(allFiles, "perkele" + i); //copy files to new servers
+			let servNumbers = [];
+			for (const s of serversOA)
+				servNumbers.push(Number(s.name.substring(7)));
+			let servNumber = 0;
+			for (let i = 0; i < maxServers; i++)
+				if (!servNumbers.includes(i)) {
+					servNumber = i;
+					break;
 				}
-			}
-			logA.push("Purchased " + bought + " servers");
+			if (ns.purchaseServer("perkele" + servNumber, ram) != "")
+				ns.tprint("Purchased perkele" + servNumber + " with " + ram + "GB of ram.");
+			else ns.tprint("ERROR something went wrong purchasing server. Perkele. Money needed: " +
+				ns.nFormat(ns.getPurchasedServerCost(ram), "0.00a"));
 		}
+	}
 
+	async function initPservers() {
 		updateServers();
+		let allPservers = ns.getPurchasedServers();
 
-		for (let i = serversOA.length - 1; i >= 0; i--) {
-			try {
-				//const [fullMatch, serverNumber] = serversOA[i].name.match(/perkele(\d+)/);
-				if (serversOA[i].name.match(/perkele/)) {
-					//	if (Number(serverNumber) < shareServers) {
-					if (Number(serversOA[i].name.match(/\d+/)[0]) < shareServers) {
-						if (!ns.fileExists("/lib/share.js", serversOA[i].name)) await ns.scp("/lib/share.js", serversOA[i].name);
-						if (!ns.isRunning("/lib/share.js", serversOA[i].name)) {
-							let threads = Math.floor(ns.getServerMaxRam(serversOA[i].name) / ns.getScriptRam("/lib/share.js", serversOA[i].name));
-							if (threads) ns.exec("/lib/share.js", serversOA[i].name, threads);
-							serversOA.splice[i];
-						}
-					}
-				}
+		for (let i = 1; i < Math.min(shareServers, allPservers.length / 2); i++) {
+			if (!ns.fileExists("/lib/share.js", allPservers[i]))
+				await ns.scp("/lib/share.js", allPservers[i]);
+			if (!ns.isRunning("/lib/share.js", allPservers[i])) {
+				let threads = Math.floor(ns.getServerMaxRam(allPservers[i]) / ns.getScriptRam("/lib/share.js", allPservers[i]));
+				if (threads) ns.exec("/lib/share.js", allPservers[i], threads);
 			}
-			catch { logA.push = ("Error with share servers, wtf") }
 		}
 	}
 

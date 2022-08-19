@@ -18,7 +18,7 @@ export const col = {
 	"underline": "\x1b[4m"
 }
 
-export function getBestFaction(ns, excluded = [], wantHackNet = true, firstRun = false) {	//find the aug that needs the least rep to get
+export function getBestFaction(ns, excluded = ["Church of the Machine God"], wantHackNet = true, firstRun = false) {	//find the aug that needs the least rep to get
 	if (firstRun) {
 		if (ns.getPlayer().factions.includes("CyberSec") &&
 			!ns.singularity.getAugmentationsFromFaction("CyberSec").every(e => {
@@ -35,8 +35,8 @@ export function getBestFaction(ns, excluded = [], wantHackNet = true, firstRun =
 	const gangFact = ns.gang.inGang() ? ns.gang.getGangInformation().faction : null;
 	let bestAugOfEachFaction = [];
 	let wantedAugs = [
-		"company_rep_mult",
-		"faction_rep_mult",
+		"company_rep",
+		"faction_rep",
 		"hacki"
 	];
 	const gangAugs = [
@@ -51,7 +51,6 @@ export function getBestFaction(ns, excluded = [], wantHackNet = true, firstRun =
 
 	if (!ns.gang.inGang()) wantedAugs.push(...gangAugs);
 	if (wantHackNet) wantedAugs.push(...hackNetAugs);
-
 	for (let fact of ns.getPlayer().factions) {
 		if (fact == gangFact || excluded.includes(fact)) continue;
 		let bestAug = {
@@ -72,13 +71,22 @@ export function getBestFaction(ns, excluded = [], wantHackNet = true, firstRun =
 				repNeeded: 0
 			}
 			thisAug.repNeeded = (thisAug.repCost - thisAug.currentRep) / ((thisAug.currentFav + 100) / 100); //rep needed for cheapest aug
-			for (let text of Object.keys(ns.singularity.getAugmentationStats(aug))) {//get aug stat names
-				for (let want of wantedAugs) {
-					if (text.startsWith(want)) {
-						thisAug.dontBuy = false;
-					}
-				}
+
+			for (let augStat of Object.keys(ns.singularity.getAugmentationStats(aug))) {
+				for (const want of wantedAugs)
+					if (augStat.startsWith(want))
+						if (ns.singularity.getAugmentationStats(aug)[augStat] > 1)
+							thisAug.dontBuy = false;
 			}
+
+
+			/*	for (let text of Object.keys(ns.singularity.getAugmentationStats(aug))) {//get aug stat names
+					for (let want of wantedAugs) {
+						if (text.startsWith(want)) {
+							thisAug.dontBuy = false;
+						}
+					}
+				}*/
 			if (thisAug.name == "Neuroreceptor Management Implant"
 				|| thisAug.name == "The Red Pill"
 				|| thisAug.name == "CashRoot Starter Kit") thisAug.dontBuy = false;
@@ -162,7 +170,7 @@ export async function writeToJSON(ns, jsonObject, filename = "/test/jsontest.txt
 }
 
 /**Map input value to output range. 
- * @example: map(5, 0, 10, 0, 100) -> outputs 50*/
+ * @example map(5, 0, 10, 0, 100) -> outputs 50*/
 export function map(number, inMin, inMax, outMin, outMax) {
 	return (number - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
 }

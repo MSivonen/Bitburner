@@ -4,8 +4,35 @@ import { readFromJSON, writeToJSON } from '/lib/includes';
 
 /** @param {import('..').NS} ns */
 export async function main(ns) {
-    const doc = eval("document");
+    const doc = eval("document"), win = eval("window");
     let textArea = doc.querySelectorAll(".react-draggable:first-of-type")[0]; //find overview
+
+
+    // ============================== afk timer ==============================
+    let timeOutId;
+    const timeOut = 120000; //120s inactivity -> focus on work
+    const logPort = ns.getPortHandle(1); //strings only, please
+
+    doc.addEventListener("mousemove", resetTimer, false);
+    doc.addEventListener("mousedown", resetTimer, false);
+    doc.addEventListener("keypress", resetTimer, false);
+    startTimer();
+
+    function startTimer() {
+        timeOutId = win.setTimeout(doInactive, timeOut)
+    }
+
+    function doInactive() { //afk code goes here
+        if (g_sets.afkFocusOnWork) g_sets.focusOnWork = true;
+        return;
+    }
+
+    function resetTimer() { //this is run every time you move the mouse or press a key.
+        g_sets.focusOnWork = false;
+        win.clearTimeout(timeOutId)
+        startTimer();
+    }
+    // ============================== /afk timer ==============================
 
 
     // ============================== buttons ==============================
@@ -16,7 +43,7 @@ export async function main(ns) {
         wantJobs: true,
         spamNeuroFlux: false,
         overrideVars: false,
-        focusOnWork: false,
+        afkFocusOnWork: true,
         paused: false
     };
     if (!ns.fileExists("g_settings.txt")) //if file doesn't exist, make it
@@ -28,6 +55,8 @@ export async function main(ns) {
         }
     }
     g_sets = readFromJSON(ns, "g_settings.txt");
+    g_sets.afkFocusOnWork = true;
+    g_sets.focusOnWork = true;
     ns.tprint(g_sets);
     const buttonsTextStyle = //text beside button
         `color:#090;
@@ -40,7 +69,8 @@ export async function main(ns) {
     let buttonsA = [];
 
     for (const key of Object.keys(g_sets)) { //make button objects
-        buttonsA.push(new Control(key, "", key, g_sets[key]));
+        if (key != "focusOnWork")
+            buttonsA.push(new Control(key, "", key, g_sets[key]));
     }
 
     for (const butt of buttonsA) makeButton(butt); //put the button objects to overview
@@ -89,6 +119,7 @@ export async function main(ns) {
     // ============================== /buttons ==============================
 
 
+    // ============================== log thing ==============================
 
     if (!textArea.textContent.includes("***")) { //check if this script hasn't been run... probably maybe.
         let text = doc.createTextNode("Someone fucked up something.\nProbably you.");
@@ -175,8 +206,8 @@ export async function main(ns) {
             }
         }
     }
+    // ============================== /log thing ==============================
 
-    const logPort = ns.getPortHandle(1); //strings only, please
 
     ns.atExit(() => {
         textArea.removeChild(textArea.lastChild); //remove log
@@ -185,14 +216,19 @@ export async function main(ns) {
         for (let i = 0; i < buttonsA.length; i++) //remove button texts
             textArea.removeChild(textArea.lastChild);
 
-
+        doc.removeEventListener("mousemove", resetTimer, false);
+        doc.removeEventListener("mousedown", resetTimer, false);
+        doc.removeEventListener("keypress", resetTimer, false);
     });
+
 
     while (true) {
         await ns.sleep(20);
         await buttonsLoop();
+        updateLog();
+    }
 
-        //log stuff
+    function updateLog() {
         clearDisplay();
         while (!logPort.empty()) {
             makeTextLine(logPort.read());
@@ -201,19 +237,13 @@ export async function main(ns) {
         for (let i = pixelsCA.length - 1; i >= 0; i--) {
             for (let j = pixelsCA[i].length - 1; j >= 0; j--) {
                 pixelsCA[i][j].update();
-                if (!pixelsCA[i][j].alive) { //remove dead pixels. Hahaha.
-                    pixelsCA[i].splice(j, 1);
-                }
+                if (!pixelsCA[i][j].alive) pixelsCA[i].splice(j, 1); //remove dead pixels. Hahaha.
                 if (pixelsCA[i].length == 0) pixelsCA.splice(i, 1); //remove empty lines
             }
-            if (pixelsCA.length > lines) { //drop the oldest line
-                for (const pix of pixelsCA[0]) {
-                    pix.drop = true;
-                }
-            }
+            if (pixelsCA.length > lines)  //drop the oldest line
+                for (const pix of pixelsCA[0]) pix.drop = true;
         }
         display();
-        // /log stuff
     }
 
     async function buttonsLoop() {

@@ -14,10 +14,10 @@ export async function main(ns) {
     logArea.style.width = "601px"; //default 500px
     logArea.style.height = "601px"; //default 500px
 
-
+    resizeTail("/test/tailResizeAtStart.js", 400, 400);
     //name=script name
     function resizeTail(name, width, height) {
-        for (tail of globalThis['document'].querySelectorAll(`h6[title*="${name}"]`))
+        for (const tail of globalThis['document'].querySelectorAll(`h6[title*="${name}"]`))
             if (tail.parentNode.parentNode.className == 'react-resizable') tail.parentNode.parentNode.setAttribute('style', `width: ${width}px; height: ${height}px;`)
     }
 }

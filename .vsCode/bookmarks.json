@@ -4,54 +4,49 @@
 			"path": ".vsCode/ver6/ver6.js",
 			"bookmarks": [
 				{
-					"line": 8,
-					"column": 30,
-					"label": "main(ns)"
-				},
-				{
-					"line": 62,
+					"line": 73,
 					"column": 52,
 					"label": "MAIN LOOP"
 				},
 				{
-					"line": 125,
+					"line": 138,
 					"column": 21,
 					"label": "updateTail()"
 				},
 				{
-					"line": 151,
+					"line": 164,
 					"column": 10,
 					"label": "updateServers()"
 				},
 				{
-					"line": 188,
+					"line": 197,
 					"column": 32,
 					"label": "initializeTarget(targ)"
 				},
 				{
-					"line": 262,
+					"line": 271,
 					"column": 22,
 					"label": "badger(targ)"
 				},
 				{
-					"line": 386,
+					"line": 395,
 					"column": 51,
 					"label": "getTargetObject(targetServ, numCores = 1)"
 				},
 				{
-					"line": 454,
+					"line": 463,
 					"column": 83,
 					"label": "buyServers(moneyToSpend = 2, maxRam = ns.getPurchasedServerMaxRam()"
 				},
 				{
-					"line": 508,
-					"column": 22,
-					"label": "pickTarget()"
-				},
-				{
-					"line": 527,
+					"line": 544,
 					"column": 39,
 					"label": "openPorts2(ns, servers)"
+				},
+				{
+					"line": 21,
+					"column": 1,
+					"label": ""
 				}
 			]
 		},
@@ -59,49 +54,49 @@
 			"path": ".vsCode/bn4/startSin.js",
 			"bookmarks": [
 				{
-					"line": 27,
-					"column": 30,
-					"label": "main(ns)"
-				},
-				{
-					"line": 75,
+					"line": 94,
 					"column": 19,
 					"label": "dynFunctions"
 				},
 				{
-					"line": 178,
+					"line": 197,
 					"column": 3,
 					"label": "==MAIN LOOP=="
 				},
 				{
-					"line": 218,
+					"line": 258,
 					"column": 20,
 					"label": "updateTail()"
 				},
 				{
-					"line": 245,
+					"line": 286,
 					"column": 33,
 					"label": "writeScript(func)"
 				},
 				{
-					"line": 253,
+					"line": 294,
 					"column": 22,
 					"label": "idle()"
 				},
 				{
-					"line": 419,
+					"line": 477,
 					"column": 22,
 					"label": "buyDarkweb()"
 				},
 				{
-					"line": 453,
+					"line": 511,
 					"column": 18,
 					"label": "murder()"
 				},
 				{
-					"line": 471,
+					"line": 529,
 					"column": 27,
 					"label": "doHacking()"
+				},
+				{
+					"line": 38,
+					"column": 1,
+					"label": ""
 				}
 			]
 		},

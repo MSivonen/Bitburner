@@ -58,7 +58,7 @@ export async function main(ns) {
             }
 
 
-            if (!ns.gang.inGang()) {
+            if (!ns.gang.inGang() && ns.getPlayer().bitNodeN != 8) {
                 let agi = 60, str = 70, dex = 60, def = 60;
 
                 if (ns.sleeve.getSleeveStats(slvNum).strength < str) {
@@ -92,7 +92,7 @@ export async function main(ns) {
                 continue;
             }
 
-            else if (ns.gang.inGang()) {
+            else if (ns.gang.inGang() || ns.getPlayer().bitNodeN == 8) {
                 if (ns.sleeve.getSleeveStats(slvNum).hacking < 30) {
                     travel(slvNum, "Volhaven");
                     ns.sleeve.setToUniversityCourse(slvNum, "ZB Institute of Technology", "Algorithms");
@@ -110,7 +110,6 @@ export async function main(ns) {
                     { "Four Sigma": "Four Sigma" },
                     { "KuaiGong International": "KuaiGong International" },
                     { "Fulcrum Technologies": "Fulcrum Secret Technologies" },
-                    //{ "Omnia Cybersystems": "OmniTek Incorporated" },
                     { "NWO": "NWO" }
                 ];
 
@@ -136,8 +135,7 @@ export async function main(ns) {
 
                 for (const job of Object.keys(ns.getPlayer().jobs)) {
                     if (jobsTaken.includes(job)) continue;
-                    if (job == "Fulcrum Technologies" && ns.singularity.getCompanyRep(job) > 2.5e5) continue;
-                    if (job != "Fulcrum Technologies" && ns.singularity.getCompanyRep(job) > 2e5) continue;
+                    if (ns.singularity.getCompanyRep(job) > 3e5) continue;
                     ns.sleeve.setToCompanyWork(slvNum, job);
                     sleeveText[slvNum] = "Sleeve " + slvNum + " company work: " + job + " rep: " + ns.nFormat(ns.singularity.getCompanyRep(job), "0a");
                     jobsTaken.push(job);
@@ -176,10 +174,20 @@ export async function main(ns) {
                 sleeveText[slvNum] = "Sleeve" + slvNum + " is idle; homiciding";
             }
 
+            if (ns.getServerMoneyAvailable("home") > 1e9) {
+                travel(slvNum, "Volhaven");
+                ns.sleeve.setToUniversityCourse(slvNum, "ZB Institute of Technology", "Algorithms");
+                sleeveText[slvNum] = "Sleeve" + slvNum + " is studying algorithms";
+                continue;
+            } else {
+                ns.sleeve.setToCommitCrime(slvNum, "homicide");
+                sleeveText[slvNum] = "Sleeve" + slvNum + " is idle; homiciding";
+            }
+
             function getSleeveAugs(slave) {
                 let wantedSleeveAugs = [
-                    "company_rep_mult",
-                    "faction_rep_mult",
+                    "company_rep",
+                    "faction_rep",
                     "hacki"
                 ],
                     dontBuy = true,

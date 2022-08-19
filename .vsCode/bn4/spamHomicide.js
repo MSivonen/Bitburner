@@ -14,8 +14,8 @@ export async function main(ns) {
 	while (true) {
 		ns.tail();
 		if (!ns.singularity.isBusy()) {
-			if (ns.getPlayer().strength >= 80) ns.singularity.commitCrime("Homicide");
-			if (ns.getPlayer().strength < 80) ns.singularity.commitCrime("Mug Someone");
+			if (ns.getPlayer().skills.strength >= 80) ns.singularity.commitCrime("Homicide");
+			if (ns.getPlayer().skills.strength < 80) ns.singularity.commitCrime("Mug Someone");
 		}
 		ns.singularity.upgradeHomeRam();
 		if (ns.getServerMaxRam("home") > 200 && !ns.isRunning("/hacknet/hackNet.js", "home")) ns.run("/hacknet/hackNet.js");
@@ -37,7 +37,6 @@ export async function main(ns) {
 
 				if (i < 4) {
 					ns.sleeve.setToCommitCrime(slvNum, "homicide");
-					task = "\nHomicide";
 				} else {
 
 					if (ns.sleeve.getInformation(slvNum).city != "Sector-12")
