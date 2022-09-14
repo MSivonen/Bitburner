@@ -16,7 +16,7 @@ import { map } from '/lib/includes.js'
 /** @param {NS} ns */
 /** @param {import('../.').NS} ns */
 export async function main(ns) {
-    let port = ns.getPortHandle(1); //x = 1-20
+    let port = ns.getPortHandle(3); //x = 1-20
     while (true) {
         while (!port.empty()) {
             ns.tprint(port.read());

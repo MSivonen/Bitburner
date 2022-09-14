@@ -5,13 +5,22 @@ import {
     from '/lib/includes.js'
 
 /** @param {NS} ns */
-/** @param {import('../.').NS} ns */
+/** @param {import('..').NS} ns */
 export async function main(ns) {
-   // ns.run("/hacknet/hackNet.js");
-    let target = ns.args.length == 0 ? "joesguns" : ns.args[0],
+    ns.tail();
+    ns.disableLog("ALL");
+    const doc = eval("document");
+    const logArea = [...doc.querySelectorAll(".react-draggable .react-resizable")].pop();
+    logArea.style = "";
+    // ns.run("/hacknet/hackNet.js");
+
+    let target = "n00dles",
         weakFile = "/lib/weak.js",
-        growfile = "/lib/grow.js";
-    let useFile;
+        growfile = "/lib/grow.js",
+        useFile;
+
+    if (typeof ns.args[0] == "string") target = ns.args[0];
+    ns.print("Target: " + target);
     while (true || ns.getHackingLevel() < ns.getServerRequiredHackingLevel("phantasy")) {
         if (ns.getServerSecurityLevel(target) > ns.getServerMinSecurityLevel(target))
             useFile = weakFile;

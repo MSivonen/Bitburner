@@ -7,7 +7,7 @@ const BUY_TRIGGER = 0.1;	// deviation from 0.5 (neutral) from which we start buy
 const SELL_TRIGGER = 0.05;	// deviation from 0.5 (neutral) from which we start selling
 const TRANSACTION_COST = 100_000;
 const MIN_TRANSACTION_SIZE = 5_000_000;
-
+let totalWorth = 0;
 
 // | <---------------------------- SHORTS | LONGS ------------------------------>|
 // 0                    0.4     0.45     0.5     0.55      0.6                   1
@@ -44,7 +44,12 @@ export async function main(ns) {
 	}
 
 	// We show the tail in normal mode, but not if we're in sales mode
-	if (ns.args[0] != 'sell') ns.tail();
+	if (ns.args[0] != 'sell') {
+		ns.tail();
+		let doc = eval("document");
+		let logArea = [...doc.querySelectorAll(".react-draggable .react-resizable")].pop();
+		logArea.style = "width: 756px; height: 673px;";
+	}
 	else {
 		// Passing sell to the script sells all the stocks and kills any other running scripts, then exists
 		let procs = ns.ps();
@@ -83,7 +88,7 @@ export async function main(ns) {
 		BuyStonks(ns, longs);
 
 		// Display our last snapshot of the stocks data to the user
-		ReportCurrentSnapshot2(ns, longs);
+		await ReportCurrentSnapshot2(ns, longs);
 
 		// 6 second ticks, we don't have any special treatment for bonus time
 		await ns.sleep(6000);
@@ -213,7 +218,7 @@ function ForecastToGraph(forecast) {
 	return { color: '#00FF00', text: '------' };
 }
 
-function ReportCurrentSnapshot2(ns, stonks) {
+async function ReportCurrentSnapshot2(ns, stonks) {
 	const columns = [
 		{ header: ' SYM', width: 6 },
 		{ header: ' Type', width: 8 },
@@ -249,7 +254,7 @@ function ReportCurrentSnapshot2(ns, stonks) {
 	}
 
 	//PrintTable(ns, data, columns, DefaultStyle(), ns.print);
-	PrintTable(ns, data, columns, DefaultStyle(), ns.writePort);
+	await PrintTable(ns, data, columns, DefaultStyle(), ns.print);//ns.tryWritePort);
 
 	let totalWorth = total.paid + total.profit + ns.getServerMoneyAvailable('home');
 	// report =
@@ -344,7 +349,7 @@ function ReportCurrentSnapshot(ns, stonks) {
 
 	ns.print('├' + ''.padEnd(header.length - 2, '─') + '┤');
 
-	let totalWorth = total.paid + total.profit + ns.getServerMoneyAvailable('home');
+	totalWorth = total.paid + total.profit + ns.getServerMoneyAvailable('home');
 	report =
 		'Total'.padEnd(7) +
 		''.padEnd(10) +

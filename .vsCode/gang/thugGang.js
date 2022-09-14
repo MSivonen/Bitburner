@@ -38,7 +38,6 @@ export async function main(ns) {
 	let trainings = ["Train Combat", "Train Combat", "Train Hacking", "Train Charisma"];
 	let crimes = ["Mug People", "Deal Drugs", "Strongarm Civilians", "Run a Con", "Armed Robbery", "Traffick Illegal Arms", "Threaten & Blackmail", "Human Trafficking", "Terrorism"];
 	let niceThings = ["Vigilante Justice", "Vigilante Justice"]; //two of these, because of random selection and I'm lazy
-	let prevPurchaseTime = ns.getTimeSinceLastAug() + 120000;
 	let wanted = 0;
 	let warFareTimer = { temp: ns.gang.getOtherGangInformation().Tetrads.power, detected: 0 };
 	ns.clearLog();
@@ -74,7 +73,7 @@ export async function main(ns) {
 		}
 
 		checkRole() {
-			/*for (let i = 0; i < memberNames.length; i++) {
+			/*for (let i = 0; i < memberNames.length; i++) { //some old shit used with hacking gangs...
 				if (this.name == memberNames[i]) {
 					if (i % 3 == 0) {
 						this.role = "muscle";
@@ -89,6 +88,7 @@ export async function main(ns) {
 				(ns.getTimeSinceLastAug() - warFareTimer.detected) % 20000 > 19750 ||
 				(ns.getTimeSinceLastAug() - warFareTimer.detected) % 20000 < 250) {
 				this.task = "Territory Warfare";
+				this.prevChange = 0;
 				ns.print(this.name + " is doing " + this.task);
 			}
 			else {
@@ -125,14 +125,11 @@ export async function main(ns) {
 		}
 
 		buyItems() {
-			if (prevPurchaseTime < ns.getTimeSinceLastAug()) {
-				for (let equ of this.getWantedItems()) {
-					if (ns.getServerMoneyAvailable("home") > ns.gang.getEquipmentCost(equ)) {
-						ns.gang.purchaseEquipment(this.name, equ);
-						ns.print("Bought " + equ + " for " + this.name + ".");
-					}
+			for (let equ of this.getWantedItems()) {
+				if (ns.getServerMoneyAvailable("home") > ns.gang.getEquipmentCost(equ) * 4) {
+					ns.gang.purchaseEquipment(this.name, equ);
+					ns.print("Bought " + equ + " for " + this.name + ".");
 				}
-				prevPurchaseTime = ns.getTimeSinceLastAug();
 			}
 		}
 
@@ -171,28 +168,36 @@ export async function main(ns) {
 		members.push(new Member(guy));
 	}
 	ns.clearLog();
-	let equipmentA = [];
-	equipmentA = ns.gang.getEquipmentNames();
-	for (let equ of equipmentA) {
-		let tempEquipment = {
+	for (let equ of ns.gang.getEquipmentNames()) {
+		allEquipmentsOA.push({
 			name: equ,
 			cost: ns.gang.getEquipmentCost(equ),
 			type: ns.gang.getEquipmentType(equ)
-		}
-		allEquipmentsOA.push(tempEquipment);
+		});
 	}
 
 
 	//======================================================================MAIN LOOP======================================================================
 	//======================================================================MAIN LOOP======================================================================
 	while (true) {
+		checkRecruits();
+		members.forEach(member => member.update());
+		warfare();
+		await ns.sleep(25);
+	}
+	//======================================================================MAIN LOOP======================================================================
+	//======================================================================MAIN LOOP======================================================================
+
+	function checkRecruits() {
 		if (members.length > ns.gang.getMemberNames().length)
 			members = members.filter(member => ns.gang.getMemberNames().includes(member.name));
 
 		if (ns.gang.recruitMember(randomName())) {
 			members.push(new Member(ns.gang.getMemberNames().pop()));
 		}
+	}
 
+	function warfare() {
 		if (warFareTimer.detected == 0) {
 			if (warFareTimer.temp != ns.gang.getOtherGangInformation().Tetrads.power) {
 				warFareTimer.detected = ns.getTimeSinceLastAug();
@@ -200,18 +205,6 @@ export async function main(ns) {
 			else warFareTimer.temp = ns.gang.getOtherGangInformation().Tetrads.power;
 		}
 
-		for (let member of members) {
-			member.update();
-		}
-
-		warfare();
-
-		await ns.sleep(25);
-	}
-	//======================================================================MAIN LOOP======================================================================
-	//======================================================================MAIN LOOP======================================================================
-
-	function warfare() {
 		let otherGangs = ns.gang.getOtherGangInformation();
 		let myGang = ns.gang.getGangInformation();
 		let winPerc = 1;
@@ -232,13 +225,11 @@ export async function main(ns) {
 		let consonants = ["w", "r", "t", "p", "s", "d", "f", "g", "h", "j", "k", "l", "c", "v", "b", "n", "m"];
 		let prev = randomInt(3);
 		for (let i = 0; i < nameLength; i++) {
-			let consIndex = randomInt(consonants.length - 1);
-			let vowIndex = randomInt(vowels.length - 1);
 			if (prev % 4 < 2) {
-				name += consonants[consIndex];
+				name += consonants[randomInt(consonants.length - 1)];
 				prev += 1 + randomInt(1);
 			} else {
-				name += vowels[vowIndex];
+				name += vowels[randomInt(vowels.length - 1)];
 				prev += 1 + randomInt(1);
 			}
 		}

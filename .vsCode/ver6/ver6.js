@@ -22,12 +22,12 @@ export async function main(ns) {
 
 
 	const
-		maxTargets = 15,
-		saveMoneyAfterPserv = 3,
-		ramNeededForMoreTargets = 10000,
-		batchInterval = 150,
+		maxTargets = 15, //oli 15
+		ramNeededForMoreTargets = 15000,
+		batchInterval = 80,
 		shareServers = ns.gang.inGang() ? 7 : 0,
-		useHashes = true;
+		useHashes = true,
+		useHacknetServersForBatching = true;
 
 
 	ns.disableLog("ALL");
@@ -40,12 +40,10 @@ export async function main(ns) {
 		targetsA = [],
 		prevTarget,
 		allServers = getServers(ns),
-		serversWithRam = getServersWithRam(ns),
 		serversWithMoney = getServersWithMoney(ns),
 		allHacked = false,
 		prevTime = ns.getTimeSinceLastAug(),
 		moneyToSteal = 0.05,
-		homeCores = ns.getServer("home").cpuCores,
 		serversOA = [],
 		initQRunningOA = [],
 		batchDebug = false,
@@ -53,7 +51,7 @@ export async function main(ns) {
 		logA = [],
 		logTargetOA = [],
 		logServersA = [],
-		firstRun = ns.getTimeSinceLastAug() == ns.getPlayer().playtimeSinceLastBitnode ? true : false;
+		firstRun =  ns.getTimeSinceLastAug() == ns.getPlayer().playtimeSinceLastBitnode ? true : false;
 
 	const hackFile = "/ver6/hack6.js",
 		growFile = "/ver6/grow6.js",
@@ -73,30 +71,30 @@ export async function main(ns) {
 		await ns.sleep();
 	}
 
-
 	//----------------------------------------MAIN LOOP----------------------------------------MAIN LOOP----------------------------------------
 	while (true) {
 		if (prevTime + batchInterval * 5 < ns.getTimeSinceLastAug()) {
-			if (!firstRun && ns.getHackingLevel() >= ns.getServerRequiredHackingLevel("phantasy")) singleTarget = "phantasy";
+			if (firstRun && ns.getHackingLevel() >= ns.getServerRequiredHackingLevel("phantasy")) singleTarget = "phantasy";
 			updateServers();
 			buyServers();
 			await initPservers();
 
-			if (!allHacked) openPorts2(ns, allServers);
+			if (!allHacked) openPorts2(ns, getServers(ns));
 			targetsA = [];
 			const totalRam = serversOA.reduce((total, serv) => total + serv.maxRam, 0);
 			numberOfTargets = firstRun ? 1 : Math.max(1, Math.min(maxTargets, Math.ceil(totalRam / ramNeededForMoreTargets)));
 			moneyToSteal = [
-				[0, .01],
-				[6000, .02],
-				[30000, .04],
-				[60000, .08],
-				[120000, .25],
-				[180000, .3],
-				[360000, .75]
+				[0, .02],
+				[6000, .15],
+				[30000, .20],
+				[60000, .25],
+				[120000, .3],
+				[180000, .35],
+				[360000, .75],
+				[7000000, .9]
 			].filter(x => x[0] <= totalRam).pop()[1];
-			moneyToSteal = target == "n00dles" ? moneyToSteal * 4 : moneyToSteal;
-			moneyToSteal = moneyToSteal > 0.75 ? 0.75 : moneyToSteal;
+			moneyToSteal = target == "n00dles" ? moneyToSteal * 8 : moneyToSteal;
+			moneyToSteal = moneyToSteal > 0.9 ? 0.9 : moneyToSteal;
 
 			logServersA[0] = "Total ram in servers: " + ns.nFormat(serversOA.reduce((total, serv) => total + serv.freeRam, 0) * 1e9, "0.0b") + "/" + ns.nFormat(totalRam * 1e9, "0.0b");
 			for (let i = 0; i < numberOfTargets; i++) {
@@ -169,6 +167,7 @@ export async function main(ns) {
 		serversOA = [];
 		for (const serv of getServersWithRam(ns)) {
 			if (ns.hasRootAccess(serv)) {
+				if (serv.startsWith("hackn") && !useHacknetServersForBatching) continue;
 				if ((serv.startsWith("hackn") && ns.getTimeSinceLastAug() % 600000 < 300000) && serv != "hacknet-node-0")
 					continue;
 				serversOA.push({
@@ -382,18 +381,6 @@ export async function main(ns) {
 				}
 			} ns.weakenAnalyze
 		}
-
-
-		/* 		
-		todo:
-		V-check total ram vs total scripts ram
-			V-If the whole shit doesn't fit, and no batches are running, reduce moneyToSteal or target
-			X-check biggest serversWithRam, if all runs fit there
-				V-if not, if biggest script fits?
-				-if not, reduce threads until it fits
-				V-shove the next biggest script to next biggest serv, etc
-					XV-if all fits somewhere, run them with delays as args
-						if something didn't fit somewhere, reduce moneyToSteal and try again */
 	}
 
 	async function getTargetObject(targetServ, numCores = 1) {
@@ -423,19 +410,17 @@ export async function main(ns) {
 		serverObject.hackDifficulty = serverObject.minDifficulty;
 		serverObject.moneyAvailable = serverObject.moneyMax * (1 - moneyToSteal);
 		while (!foundThreads) { //binary search for number of growThreads
-			if (minGuess == maxGuess && newMoney >= serverObject.moneyMax) foundThreads = true;
-			if (minGuess + 1 == maxGuess && newMoney >= serverObject.moneyMax) foundThreads = true;
+			if ((minGuess == maxGuess || minGuess + 1 == maxGuess) && newMoney >= serverObject.moneyMax) foundThreads = true;
 			prevThreads = threads; //previous guess
 			let serverGrowth = ns.formulas.hacking.growPercent(serverObject, threads, playerObject, numCores);
 			newMoney = (serverObject.moneyAvailable + threads) * serverGrowth;
 			if (!foundBiggest && newMoney < serverObject.moneyMax) maxGuess *= 16; else foundBiggest = true; //first find a too big number
-			if (newMoney >= serverObject.moneyMax) { //if too much threads, set maxGuess to this and lower the guess
+			if (newMoney >= serverObject.moneyMax) { //if too much threads, set maxGuess to current and lower the guess
 				maxGuess = threads;
 				threads = Math.floor(minGuess + (maxGuess - minGuess) / 2);
-			} else {//if not enough threads, set minGuess to this and raise the guess
+			} else {//if not enough threads, set minGuess to current and raise the guess
 				minGuess = threads;
-				threads = Math.ceil(minGuess + (maxGuess - minGuess) / 2);
-				threads++;
+				threads = Math.ceil(minGuess + (maxGuess - minGuess) / 2) + 1;
 			}
 		}
 
@@ -488,10 +473,15 @@ export async function main(ns) {
 		while (ram < maxRam && ns.getServerMoneyAvailable("home") > ns.getPurchasedServerCost(ram * 2)) {
 			ram *= 2; //increase ram until happy
 			buy = true;
+			if (ram >= maxRam) {
+				ram = maxRam;
+				buy = true;
+			}
 		}
+		if (smallestServer != undefined)
+			if (ram == smallestServer.ram) return;
 
 		if (buy) {
-			if (ram > maxRam) return;
 			if (serversOA.length == maxServers) {
 				ns.killall(smallestServer.name);
 				ns.deleteServer(smallestServer.name);
@@ -505,8 +495,10 @@ export async function main(ns) {
 					servNumber = i;
 					break;
 				}
-			if (ns.purchaseServer("perkele" + servNumber, ram) != "")
+			if (ns.purchaseServer("perkele" + servNumber, ram) != "") {
 				ns.tprint("Purchased perkele" + servNumber + " with " + ram + "GB of ram.");
+				ns.getPurchasedServers().forEach(serv => ns.scp(allFiles, serv));
+			}
 			else ns.tprint("ERROR something went wrong purchasing server. Perkele. Money needed: " +
 				ns.nFormat(ns.getPurchasedServerCost(ram), "0.00a"));
 		}
@@ -546,6 +538,7 @@ export async function main(ns) {
 
 	/** @param {import("../.").NS} ns */
 	function openPorts2(ns, servers) {
+		updateServers();
 		let hacked = 0;
 		let progs = ["brutessh.exe", "ftpcrack.exe", "relaysmtp.exe", "httpworm.exe", "sqlinject.exe"];
 		const ownedProgs = progs.filter((x) => ns.fileExists(x));

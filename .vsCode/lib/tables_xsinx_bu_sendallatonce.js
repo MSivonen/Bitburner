@@ -35,7 +35,7 @@ export async function main(ns) {
 	]);
 
 	// Free style, no columns, the table adjusts to contents
-	await PrintTable(ns, data, undefined, DefaultStyle(), ColorPrint);
+	PrintTable(ns, data, undefined, DefaultStyle(), ColorPrint);
 
 	// Example of adding a break line in the middle of the table:
 	// data.push(null);
@@ -50,10 +50,10 @@ export async function main(ns) {
 		{ header: 'Ram', width: 13 },
 		{ header: 'Money', width: 20 }
 	];
-	await PrintTable(ns, data, columns, DefaultStyle(), ColorPrint);
+	PrintTable(ns, data, columns, DefaultStyle(), ColorPrint);
 }
 
-export async function PrintTable(ns, data, columns, style = DefaultStyle(), printfunc = ns.print) {
+export function PrintTable(ns, data, columns, style = DefaultStyle(), printfunc = ns.print) {
 	// Create default columns if no definition were provided
 	let columnsProvided = true;
 	if (columns == undefined) {
@@ -70,17 +70,17 @@ export async function PrintTable(ns, data, columns, style = DefaultStyle(), prin
 		}
 	}
 
-	await PrintBorder(ns, columns, style[HEADER], printfunc);
+	PrintBorder(ns, columns, style[HEADER], printfunc);
 	if (columnsProvided) {
-		await PrintHeader(ns, columns, style[HEADER], printfunc)
-		await PrintBorder(ns, columns, style[DIVIDER], printfunc);
+		PrintHeader(ns, columns, style[HEADER], printfunc)
+		PrintBorder(ns, columns, style[DIVIDER], printfunc);
 	}
 	let i = 0;
 	for (const line of data) {
-		await PrintLine(ns, columns, line, style, printfunc, i++ % 2 == 0);
+		PrintLine(ns, columns, line, style, printfunc, i++ % 2 == 0);
 	}
-	await PrintBorder(ns, columns, style[FOOTER], printfunc);
-	logText = "";
+	PrintBorder(ns, columns, style[FOOTER], printfunc);
+	logText="";
 }
 
 export function DefaultStyle() {
@@ -91,7 +91,7 @@ export function DefaultStyle() {
 	];
 }
 
-async function PrintBorder(ns, columns, style, printfunc = ns.print) {
+function PrintBorder(ns, columns, style, printfunc = ns.print) {
 	let printStack = [];
 	printStack.push('white', style[OPENER]);
 	for (let c = 0; c < columns.length; c++) {
@@ -102,20 +102,20 @@ async function PrintBorder(ns, columns, style, printfunc = ns.print) {
 			printStack.push('white', style[SEPARATOR]);
 
 	}
-	await PrintStack(ns, printStack, printfunc);
+	PrintStack(ns, printStack, printfunc);
 }
 
-async function PrintHeader(ns, columns, style, printfunc = ns.print) {
+function PrintHeader(ns, columns, style, printfunc = ns.print) {
 	let printStack = [];
 	printStack.push('white', style[BAR]);
 	for (let c = 0; c < columns.length; c++) {
 		printStack.push('white', columns[c].header.padEnd(columns[c].width));
 		printStack.push('white', style[BAR]);
 	}
-	await PrintStack(ns, printStack, printfunc);
+	PrintStack(ns, printStack, printfunc);
 }
 
-async function PrintLine(ns, columns, data, style, printfunc = ns.print, highlight) {
+function PrintLine(ns, columns, data, style, printfunc = ns.print, highlight) {
 	if (data == null) {
 		PrintBorder(ns, columns, style[DIVIDER], printfunc);
 		return;
@@ -133,7 +133,7 @@ async function PrintLine(ns, columns, data, style, printfunc = ns.print, highlig
 		printStack.push('white', style[0][BAR]);
 	}
 
-	await PrintStack(ns, printStack, printfunc);
+	PrintStack(ns, printStack, printfunc);
 }
 
 export function CreateStyle(color, highlight) {
@@ -142,41 +142,28 @@ export function CreateStyle(color, highlight) {
 	return { style: { color: color, backgroundColor: backColor } };
 }
 
-async function PrintStack(ns, printStack, printfunc) {
-	if (printfunc == ns.tryWritePort) {
+function PrintStack(ns, printStack, printfunc) {
+	if (printfunc == ns.writePort) {
 		for (let i = 0; i < printStack.length; i += 2) {
 			let style = printStack[i];
 			if (style.style == undefined) {
-				style = {
-					color: printStack[i],
-					backgroundcolor: "#000000"
-				}
+				style = `color: ${printStack[i]};background-color: #000000`;
 			} else {
-				style = {
-					color: style.style.color,
-					backgroundcolor: style.style.backgroundColor
-				}
+				style = `color: ${style.style.color};background-color: ${style.style.backgroundColor} `;
 			}
-			logText = {
-				style: style,
-				data: printStack[i + 1]
-			}
-			let timeOut = performance.now() + 500;
-			while (true) {
-				if (await printfunc(PORTNUMBER, JSON.stringify(logText))) break;
-				if (timeOut < performance.now()) {
-					ns.print("Failed to write to port " + PORTNUMBER);
-					break;
-				}
-				await ns.sleep(1);
-			}
+			logText += ("ö" + style + "ä" + printStack[i + 1]);
 		}
-	} else if (printfunc == ns.tprint || printfunc == ns.print) {
+	}
+
+	if (printfunc == ns.tprint || printfunc == ns.print) {
 		let str = '';
 		for (let i = 1; i < printStack.length; i += 2) {
 			str += printStack[i];
 		}
 		printfunc(str);
+	}
+	else if (printfunc == ns.writePort) {
+		printfunc(PORTNUMBER, logText);
 	} else {
 		printfunc(...printStack);
 	}

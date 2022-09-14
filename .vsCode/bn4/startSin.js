@@ -1,26 +1,16 @@
-import { readFromJSON } from "/lib/includes"
-import { writeToJSON } from "/lib/includes"
-import { objectArraySort } from "/lib/includes"
-import { printArray } from "/lib/includes.js"
-//import { openPorts } from "/lib/includes.js"
-//import { objectArraySort } from "/lib/includes.js"
-import { getServers } from "/lib/includes.js"
-import { getServersWithRam } from "/lib/includes.js"
-import { getServersWithMoney } from "/lib/includes.js"
-//import { secondsToHMS } from "/lib/includes.js"
-import { getBestFaction } from "/lib/includes.js"
+import {
+	printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,
+	secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, openPorts2, getBestFaction, col
+}
+	from "/lib/includes.js"
 
 
 const imports = `
-import { printArray } from "/lib/includes.js"
-import { openPorts } from "/lib/includes.js"
-import { objectArraySort } from "/lib/includes.js"
-import { getServers } from "/lib/includes.js"
-import { getServersWithRam } from "/lib/includes.js"
-import { getServersWithMoney } from "/lib/includes.js"
-import { secondsToHMS } from "/lib/includes.js"
-import { killAllButThis } from "/lib/includes.js"
-import { connecter } from "/lib/includes.js"
+import {
+	printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,
+	secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, openPorts2, getBestFaction, col
+}
+	from "/lib/includes.js"
 `
 
 /** @param {NS} ns */
@@ -44,12 +34,15 @@ export async function main(ns) {
 		wantGang = true,
 		timeToWaitForAugs = 300 * 1000,
 		augInstallTimer = 60000 * 400, //400min
-		firstRun = ns.getTimeSinceLastAug() == ns.getPlayer().playtimeSinceLastBitnode ? true : false,
-		wantAugNum = 5,
-		nextBN = 8,
+		firstRun = !(ns.singularity.getOwnedAugmentations(false).length > 2),
+		wantAugNum = 10,
+		nextBN = 12,
 		startTime = ns.getTimeSinceLastAug(),
 		contractDelay = 60 * 21 * 1000,
 		gangServers = ["CSEC", "avmnite-02h", "I.I.I.I", "run4theh111z", "The-Cave", "w0r1d_d43m0n"];
+
+	if (ns.getServer().hostname != "home")
+		await ns.scp("g_settings.txt", ns.getServer().hostname, "home");
 
 	let g_sets = readFromJSON(ns, "g_settings.txt"),
 		wantAugsInstalled = g_sets.wantAugsInstalled,
@@ -67,7 +60,8 @@ export async function main(ns) {
 		prevTime = -99e99,
 		timer = 0,
 		startScriptsRunned = false,
-		contractTimer = -99e99;
+		contractTimer = -99e99,
+		doRestart = false;
 
 	ns.tail();
 	ns.disableLog("ALL");
@@ -80,7 +74,6 @@ export async function main(ns) {
 		ns.exec("/bn4/sleeves.js", "home");
 		ns.exec("/hacknet/hackNet.js", "home");
 		ns.exec("/gang/thugGang.js", "home");
-		ns.alert("Muista startata gangi");
 		startScriptsRunned = true;
 	}
 
@@ -91,11 +84,16 @@ export async function main(ns) {
 		"/bn4/homicide.js",
 		"/bn4/mug.js",
 		"/bn4/buyHomeRam.js",
-		"/bn4/faction.js"
+		"/bn4/faction.js",
+		"/contracts/contractMain.js",
+		"/lib/includes.js"
 	];
 	let activityText = [];
 
 	const dynFunctions = [
+		`//endBN
+		const nextBN = ns.args[0] ?? 12;
+		ns.singularity.destroyW0r1dD43m0n(nextBN, "/bn4/starter.js");`,
 		`//backdoors
 		const nextBN=ns.args[0];
 		const gangServers = ["CSEC",
@@ -103,7 +101,6 @@ export async function main(ns) {
 		  "I.I.I.I",
 		   "run4theh111z",
 		    "The-Cave", 
-			"w0r1d_d43m0n",
 			"ecorp",
 			"megacorp",
 			"blade",
@@ -119,11 +116,6 @@ export async function main(ns) {
 				&& ns.hasRootAccess(server)
 				&& !server.startsWith("perke")) { //PURCHASED SERVER
 				connecter(ns, server);
-				if (server == "w0r1d_d43m0n") {
-					let time = ns.getPlayer().totalPlaytime;
-					await ns.write("lastBNend.txt", time, "w");
-					ns.singularity.destroyW0r1dD43m0n(nextBN, "/bn4/spamHomicide.js");
-				}
 				ns.tprint("Installing backdoor on " + server);
 				await ns.singularity.installBackdoor();
 				break;
@@ -201,18 +193,18 @@ export async function main(ns) {
 	runFunc("buyHomeRam");
 
 	while (true) {
-		if (!startScriptsRunned && startTime + 3000 < ns.getTimeSinceLastAug())
-			runStartScripts();
-		updateSettings();
+		//if (!startScriptsRunned && startTime + 3000 < ns.getTimeSinceLastAug())
+		//runStartScripts();
+		await updateSettings();
 		if (!overrideVars) {
 			if (ns.getHackingLevel() > 1000) wantJobs = true;
 			else wantJobs = false;
 		}
 		while (paused) {
 			await ns.sleep(100);
-			updateSettings();
+			await updateSettings();
 		}
-		if (prevTime + 2000 < ns.getTimeSinceLastAug()) {
+		if (prevTime + 1000 < ns.getTimeSinceLastAug()) {
 			if (contractTimer + contractDelay < ns.getTimeSinceLastAug()) {
 				let server = "";
 				let ram = 0;
@@ -221,6 +213,8 @@ export async function main(ns) {
 						&& ns.getServer(serv).hasAdminRights) {
 						server = serv;
 						ram = ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv);
+						if (ram >= ns.getScriptRam("/contracts/contractMain.js"))
+							break;
 					}
 				}
 				if (server == "") return;
@@ -231,23 +225,27 @@ export async function main(ns) {
 				else contractTimer = ns.getTimeSinceLastAug();
 			}
 			runFunc("buyHomeRam");
-			if (wantJobs) runFunc("getJobs");
-			runFunc("startGang", wantGang);
+			if (wantJobs && ns.getHackingLevel() > 1000) runFunc("getJobs");
+			//runFunc("startGang", wantGang);
 			if (wantBuyAugs) getAugs();
 			buyDarkweb();
 			await copyProgs();
 			runFunc("joinFactions");
-			runFunc("backdoors", nextBN);
+			runFunc("backdoors");
+			//runFunc("endBN", nextBN);
 			prevTime = ns.getTimeSinceLastAug();
 		}
 		await idle();
 		updateTail();
+		//ns.tprint(await getBestFaction(ns, ["Church of the Machine God"], wantHackNet, firstRun))
 		if (await getBestFaction(ns, ["Church of the Machine God"], wantHackNet, firstRun) != "Nope")
 			donate(await getBestFaction(ns, ["Church of the Machine God"], wantHackNet, firstRun));
 		await ns.sleep(15);
 	}
 
-	function updateSettings() {
+	async function updateSettings() {
+		if (ns.getServer().hostname != "home")
+			await ns.scp("g_settings.txt", ns.getServer().hostname, "home");
 		g_sets = readFromJSON(ns, "g_settings.txt");
 		wantAugsInstalled = g_sets.wantAugsInstalled,
 			wantBuyAugs = g_sets.wantBuyAugs,
@@ -291,14 +289,17 @@ export async function main(ns) {
 	}
 
 	async function writeScript(func) {
-		let fileName = func.substring(func.indexOf("/") + 2, func.indexOf("\n"));
+		const fileName = func.substring(func.indexOf("/") + 2, func.indexOf("\n"));
 		const startOfFile = `/** @param {NS} ns */ \nexport async function main(ns) {\n`;
 		const toWrite = imports + startOfFile + func + "\n}";
 		const name = path + fileName + ".js";
 		await ns.write(name, toWrite, "w");
 		await ns.sleep();
 	}
+
 	async function idle() {
+		if (ns.singularity.getCurrentWork() != null)
+			if (ns.singularity.getCurrentWork().type == "GRAFTING") return;
 		let daedalus, redPill;
 		for (let fact of ns.getPlayer().factions) {
 			if (fact == "Daedalus") daedalus = true;
@@ -307,7 +308,7 @@ export async function main(ns) {
 			if (aug == "The Red Pill") redPill = true;
 		}
 
-		if ((wantGang && (!ns.gang.inGang()) && !singularity.isBusy())) {
+		if ((wantGang && (!ns.gang.inGang()) && !ns.singularity.isBusy())) {
 			murder();
 		} else if (ns.getPlayer().factions.length != 0 && (!wantGang || ns.gang.inGang()) && prevJobTime + 5000 < ns.getTimeSinceLastAug()) {
 			prevJobTime = ns.getTimeSinceLastAug();
@@ -355,8 +356,9 @@ export async function main(ns) {
 			if (ns.singularity.getCurrentWork())
 				if (ns.singularity.getCurrentWork().factionName == "Daedalus") donationFact = "Daedalus";
 
+
 		if (donationFact && ns.singularity.getFactionFavor(donationFact) >= ns.getFavorToDonate()) {
-			if (donationFact == "Daedalus") {
+			if (donationFact == "Daedalus" && !ns.singularity.getOwnedAugmentations(true).includes("The Red Pill")) {
 				augCost = 1e10;
 				bestAug = "The Red Pill";
 			} else
@@ -407,53 +409,56 @@ export async function main(ns) {
 			let augs = ns.singularity.getAugmentationsFromFaction(fact);
 			for (let aug of augs) {
 				let dontBuy = true;
-				let tempArr = Object.keys(ns.singularity.getAugmentationStats(aug));
-				for (let text of tempArr) {
-					for (let i of wantedAugs) {
-						if (text.startsWith(i)) {
+				let augStats = Object.entries(ns.singularity.getAugmentationStats(aug));
+
+				for (const e of augStats) {
+					for (const want of wantedAugs)
+						if (e[0].startsWith(want) && e[1] != 1)
 							dontBuy = false;
-						}
-					}
 				}
 
 				if (aug == "Neuroreceptor Management Implant"
 					|| aug == "The Red Pill"
 					|| aug == "CashRoot Starter Kit") dontBuy = false;
-				if (aug.startsWith("NeuroFlux Govern") && !spamNeuroFlux && timer == 0) dontBuy = true;
+				if (aug.startsWith("NeuroFlux Govern") && !spamNeuroFlux && !doRestart) dontBuy = true;
 
-				const CsecAugs = ns.singularity.getAugmentationsFromFaction("CyberSec").filter(e => {
+				let NiteSecAugs = ns.singularity.getAugmentationsFromFaction("NiteSec").filter(e => {
 					return !ns.singularity.getOwnedAugmentations(true).includes(e);
 				});
+				NiteSecAugs = NiteSecAugs.filter(e => e != "DataJack")
+				if (NiteSecAugs.length == 0) doRestart = true;
 
-				if (firstRun && CsecAugs.length > 0) {
-					if (CsecAugs[CsecAugs.length - 1].endsWith("II") &&
-						!ns.singularity.getOwnedAugmentations().includes(CsecAugs[CsecAugs.length - 1].slice(0, -1)))
-						ns.singularity.purchaseAugmentation("CyberSec", CsecAugs.pop());
-					try { ns.singularity.purchaseAugmentation("CyberSec", CsecAugs.pop()); } catch { }
+				if (firstRun && !(ns.getPlayer().factions).includes("NiteSec")) return;
+				if (firstRun && NiteSecAugs.length > 0) {
+					let canBuy = [];
+					for (let i = NiteSecAugs.length - 1; i >= 0; i--) {
+						if (ns.singularity.getAugmentationPrereq(NiteSecAugs[i]).every(aug =>
+							ns.singularity.getOwnedAugmentations(true).includes(aug)))
+							canBuy.push(NiteSecAugs[i]);
+					}
+					ns.singularity.purchaseAugmentation("NiteSec", canBuy.pop());
 				} else
 					if (!dontBuy) {
-						if (!firstRun || CsecAugs.length == 0)
-							if (ns.singularity.purchaseAugmentation(fact, aug)) {
-								logPort.write("Bought " + aug + " for main dude");
-								boughtAug += 1;
-								timer = ns.getTimeSinceLastAug();
-								//ns.exec("/test/fireworks.js", "home", 1);
-							}
+						if (ns.singularity.purchaseAugmentation(fact, aug)) {
+							logPort.write("Bought " + aug + " for main dude");
+							boughtAug += 1;
+							timer = ns.getTimeSinceLastAug();
+						}
 					}
 			}
 		}
 		if (ns.singularity.getOwnedAugmentations(true).includes("The Red Pill") &&
 			!ns.singularity.getOwnedAugmentations(false).includes("The Red Pill"))
 			boughtAug += 99;
-		if (firstRun) {
-			if (wantAugsInstalled && ns.getPlayer().factions.includes("CyberSec") &&
-				(ns.singularity.getAugmentationsFromFaction("CyberSec").every(e => {
-					return ns.singularity.getOwnedAugmentations(true).includes(e);
-				}))) ns.exec("/bn4/restart.js", "home");
-		} else
-			if (wantAugsInstalled && (boughtAug >= wantAugNum || (boughtAug > 0 && ns.getTimeSinceLastAug() > augInstallTimer))) {
-				if (timer + timeToWaitForAugs < ns.getTimeSinceLastAug())
+		if (wantAugsInstalled) {
+			if ((firstRun && doRestart) ||
+				(!firstRun && (boughtAug >= wantAugNum || (boughtAug > 0 && ns.getTimeSinceLastAug() > augInstallTimer)))) {
+				doRestart = true;
+				if (timer + timeToWaitForAugs < ns.getTimeSinceLastAug()) {
+					if (ns.singularity.getCurrentWork() != null)
+						if (ns.singularity.getCurrentWork().type == "GRAFTING") return;
 					ns.exec("/bn4/restart.js", "home");
+				}
 				for (const file of ["/gang/thugGang.js", "/lib/purchaseServers.js"])
 					if (ns.isRunning(file, "home")) ns.kill(file, "home");
 				if ((ns.ps("home").filter(f => f.filename.includes("stockXsinx"))).length != 0) {
@@ -462,25 +467,8 @@ export async function main(ns) {
 				}
 				logPort.write("Restarting in " + Math.floor((timer + timeToWaitForAugs - ns.getTimeSinceLastAug()) / 1000) + "s")
 			}
+		}
 	}
-
-	/* 	async function backdoors() {
-			for (let server of gangServers) {
-				if (ns.getServerRequiredHackingLevel(server) <= ns.getHackingLevel()
-					&& !ns.getServer(server).backdoorInstalled
-					&& ns.hasRootAccess(server)
-					&& !server.startsWith("perke")) { //PURCHASED SERVER
-					connecter(server);
-					if (server == "w0r1d_d43m0n") {
-						let time = ns.getPlayer().totalPlaytime;
-						await ns.write("lastBNend.txt", time, "w");
-					}
-					ns.print("Installing backdoor on " + server);
-					await ns.singularity.installBackdoor();
-					break;
-				}
-			}
-		} */
 
 	function buyDarkweb() {
 		if (ns.getServerMoneyAvailable("home") > 200000) ns.singularity.purchaseTor();
@@ -494,27 +482,6 @@ export async function main(ns) {
 			}
 		}
 	}
-
-	/* 	function faction() {
-			for (let server of servers) {
-				if (ns.getServerMaxRam(server) - ns.getServerUsedRam(server) >= ns.getScriptRam("/bn4/faction.js")) {
-					ns.exec("/bn4/faction.js", server);
-					break;
-				}
-			}
-		} */
-
-	/* 	function buyHomeRam() {
-			for (let server of servers) {
-				if (ns.getServerMaxRam(server) - ns.getServerUsedRam(server) >= ns.getScriptRam("/bn4/buyHomeRam.js")) {
-					if (ns.singularity.getUpgradeHomeRamCost() * 2 < ns.getServerMoneyAvailable("home")) {
-						ns.exec("/bn4/buyHomeRam.js", server);
-						ns.print("Bought homeram");
-						return;
-					}
-				}
-			}
-		} */
 
 	function murder() {
 		for (let server of servers) {
@@ -532,27 +499,5 @@ export async function main(ns) {
 			}
 		}
 		logPort.write("Not enough ram for murder.js");
-	}
-
-	function connecter(targ) {
-		ns.singularity.connect("home");
-		let target = targ;
-		let paths = { "home": "" };
-		let queue = Object.keys(paths);
-		let name;
-		let pathToTarget = [];
-		while ((name = queue.shift())) {
-			let path = paths[name];
-			let scanRes = ns.scan(name);
-			for (let newSv of scanRes) {
-				if (paths[newSv] === undefined) {
-					queue.push(newSv);
-					paths[newSv] = `${path},${newSv}`;
-					if (newSv == target)
-						pathToTarget = paths[newSv].substr(1).split(",");
-				}
-			}
-		}
-		pathToTarget.forEach(server => ns.singularity.connect(server));
 	}
 }

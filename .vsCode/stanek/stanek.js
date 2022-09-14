@@ -9,7 +9,7 @@ import {
 export async function main(ns) {
     const path = "/stanek/dyn/",
         startTime = ns.getTimeSinceLastAug(),
-        spamStart = 2 * 60 * 1000;
+        spamStart = (ns.args[0] ?? 120) * 1000;
     let fragments = [],
         files = [],
         prevtime = ns.getTimeSinceLastAug(),
@@ -17,11 +17,9 @@ export async function main(ns) {
 
     await setup();
 
-
-
     while (1 / 0 == Infinity) {
         await copyProgs();
-        if (startTime + spamStart < ns.getTimeSinceLastAug()) interval = 20000; //constantly charge until this time
+        if (startTime + spamStart < ns.getTimeSinceLastAug()) interval = 20000; //charge every 20s
         if (prevtime + interval < ns.getTimeSinceLastAug()) {
             chargePieces();
             prevtime = ns.getTimeSinceLastAug();
@@ -30,16 +28,13 @@ export async function main(ns) {
         await ns.sleep(200);
     }
 
-
-
-
     async function setup() {
         ns.stanek.acceptGift();
         ns.tail();
         ns.disableLog("ALL");
 
         for (const file of ns.ls("home"))
-            if (file.startsWith("/stanek/dyn/"))
+            if (file.startsWith(path))
                 ns.rm(file);
 
         for (const frag of ns.stanek.activeFragments()) {
@@ -49,13 +44,9 @@ export async function main(ns) {
                 `await ns.stanek.chargeFragment(${frag.x}, ${frag.y});`)
         }
 
-        /*    for (const file of ns.ls("home")) {
-                if (file.startsWith("/stanek/dyn/"))
-                    ns.tprint(file);
-            }*/
         if (fragments.length == 0) {
             ns.alert("Go and make the stanek tetris!");
-            ns.tprint("\x1b[31mGo and make the stanek tetris!");
+            ns.print("\x1b[31mGo and make the stanek tetris!");
             ns.exit();
         }
     }

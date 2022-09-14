@@ -4,42 +4,37 @@
 			"path": ".vsCode/ver6/ver6.js",
 			"bookmarks": [
 				{
-					"line": 73,
+					"line": 71,
 					"column": 52,
 					"label": "MAIN LOOP"
 				},
 				{
-					"line": 138,
+					"line": 136,
 					"column": 21,
 					"label": "updateTail()"
 				},
 				{
-					"line": 164,
+					"line": 162,
 					"column": 10,
 					"label": "updateServers()"
 				},
 				{
-					"line": 197,
+					"line": 196,
 					"column": 32,
 					"label": "initializeTarget(targ)"
 				},
 				{
-					"line": 271,
+					"line": 270,
 					"column": 22,
 					"label": "badger(targ)"
 				},
 				{
-					"line": 395,
-					"column": 51,
-					"label": "getTargetObject(targetServ, numCores = 1)"
-				},
-				{
-					"line": 463,
+					"line": 448,
 					"column": 83,
 					"label": "buyServers(moneyToSpend = 2, maxRam = ns.getPurchasedServerMaxRam()"
 				},
 				{
-					"line": 544,
+					"line": 536,
 					"column": 39,
 					"label": "openPorts2(ns, servers)"
 				},
@@ -54,47 +49,37 @@
 			"path": ".vsCode/bn4/startSin.js",
 			"bookmarks": [
 				{
-					"line": 94,
+					"line": 89,
 					"column": 19,
 					"label": "dynFunctions"
 				},
 				{
-					"line": 197,
+					"line": 189,
 					"column": 3,
 					"label": "==MAIN LOOP=="
 				},
 				{
-					"line": 258,
+					"line": 256,
 					"column": 20,
 					"label": "updateTail()"
 				},
 				{
-					"line": 286,
+					"line": 284,
 					"column": 33,
 					"label": "writeScript(func)"
 				},
 				{
-					"line": 294,
+					"line": 292,
 					"column": 22,
 					"label": "idle()"
 				},
 				{
-					"line": 477,
-					"column": 22,
-					"label": "buyDarkweb()"
-				},
-				{
-					"line": 511,
-					"column": 18,
-					"label": "murder()"
-				},
-				{
-					"line": 529,
+					"line": 496,
 					"column": 27,
 					"label": "doHacking()"
 				},
 				{
-					"line": 38,
+					"line": 28,
 					"column": 1,
 					"label": ""
 				}
@@ -104,22 +89,22 @@
 			"path": ".vsCode/gang/thugGang.js",
 			"bookmarks": [
 				{
-					"line": 44,
+					"line": 43,
 					"column": 13,
 					"label": ""
 				},
 				{
-					"line": 59,
+					"line": 58,
 					"column": 8,
 					"label": ""
 				},
 				{
-					"line": 65,
+					"line": 64,
 					"column": 14,
 					"label": ""
 				},
 				{
-					"line": 75,
+					"line": 74,
 					"column": 11,
 					"label": ""
 				},
@@ -129,32 +114,32 @@
 					"label": ""
 				},
 				{
-					"line": 136,
+					"line": 133,
 					"column": 16,
 					"label": ""
 				},
 				{
-					"line": 153,
+					"line": 150,
 					"column": 10,
 					"label": ""
 				},
 				{
-					"line": 183,
+					"line": 177,
 					"column": 84,
 					"label": "==MAIN LOOP=="
 				},
 				{
-					"line": 215,
+					"line": 208,
 					"column": 17,
 					"label": ""
 				},
 				{
-					"line": 229,
+					"line": 222,
 					"column": 20,
 					"label": ""
 				},
 				{
-					"line": 90,
+					"line": 89,
 					"column": 1,
 					"label": ""
 				}

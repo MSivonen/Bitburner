@@ -8,13 +8,13 @@ import {
 /** @param {import('..').NS} ns */
 export async function main(ns) {
     let allContracts = [];
-    for (const serv of getServers(ns)) {
-        ns.ls(serv, ".cct").forEach(f => allContracts.push({
+    getServers(ns).forEach(serv => {
+        ns.ls(serv, ".cct").forEach(file => allContracts.push({
             server: serv,
-            contract: f,
-            contractType: ns.codingcontract.getContractType(f, serv)
+            contract: file,
+            contractType: ns.codingcontract.getContractType(file, serv)
         }));
-    }
+    });
 
     for (const contr of allContracts) {
         switch (contr.contractType) {
@@ -49,8 +49,7 @@ export async function main(ns) {
                 sanitizeParenthesesInExpression(contr.contract, contr.server);
                 break;
             default:
-                ns.tprint("WARN " + contr.contractType + " found from " + contr.server + ", it does not have a solver yet.");
-                ns.tprint("ERROR connecter " + contr.server);
+                ns.tprint("\x1b[35mconnecter " + (contr.server).padEnd(20) + "\x1b[33m" + (contr.contractType).padEnd(43) + " \x1b[32mno solver.");
         }
     }
 

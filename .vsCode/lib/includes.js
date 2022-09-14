@@ -20,16 +20,16 @@ export const col = {
 
 export function getBestFaction(ns, excluded = ["Church of the Machine God"], wantHackNet = true, firstRun = false) {	//find the aug that needs the least rep to get
 	if (firstRun) {
-		if (ns.getPlayer().factions.includes("CyberSec") &&
-			!ns.singularity.getAugmentationsFromFaction("CyberSec").every(e => {
+		if (ns.getPlayer().factions.includes("NiteSec") &&
+			!ns.singularity.getAugmentationsFromFaction("NiteSec").every(e => {
 				return ns.singularity.getOwnedAugmentations(true).includes(e);
 			})) {
-			const augs = ns.singularity.getAugmentationsFromFaction("CyberSec").filter(e => {
+			const augs = ns.singularity.getAugmentationsFromFaction("NiteSec").filter(e => {
 				return !ns.singularity.getOwnedAugmentations(true).includes(e);
 			});
 			if (augs.length != 0)
-				if (ns.singularity.getAugmentationRepReq(augs[augs.length - 1]) > ns.singularity.getFactionRep("CyberSec"))
-					return ({ faction: "CyberSec", aug: augs.pop() });
+				if (ns.singularity.getAugmentationRepReq(augs[augs.length - 1]) > ns.singularity.getFactionRep("NiteSec"))
+					return ({ faction: "NiteSec", aug: augs.pop() });
 		}
 	}
 	const gangFact = ns.gang.inGang() ? ns.gang.getGangInformation().faction : null;
@@ -206,17 +206,22 @@ export function connecter(ns, targ) {
 }
 
 export function printArray(ns, thisArray, log = "terminal") {
-	if (typeof thisArray !== 'object') {
-		ns.tprint("Tried to print something that's not an iterable or a object");
+	let printFunc = ns.tprint;
+	if (log == "tail") printFunc = ns.print;
+
+	if (typeof thisArray == "number") {
+		printFunc("\x1b[38;5;79mPrintArray printing a number: " + thisArray);
+	} else	if (typeof thisArray == "string") {
+		printFunc("\x1b[38;5;79mPrintArray printing a string: " + thisArray);
+	} else if (typeof thisArray !== 'object') {
+		printFunc("\x1b[35mPrintArray tried to print undefined or something:\n\x1b[41m" + (new Error().stack));
 	} else if (thisArray[Symbol.iterator]) {
 		for (const value of thisArray) {
-			if (log != "tail") ns.tprint(value);
-			else ns.print(value);
+			printFunc(value);
 		}
 	} else {
 		for (const [key, value] of Object.entries(thisArray)) {
-			if (log != "tail") ns.tprint(`${key}: ${value}`);
-			else ns.print(`${key}: ${value}`);
+			printFunc(`${key}: ${value}`);
 		}
 	}
 }
@@ -265,24 +270,19 @@ export function secondsToHMS(ns, s) {
 
 /** @param {NS} ns */
 export function getServers(ns, root = 'home', found = new Set()) {
-	// We add the current node to the found servers list
 	found.add(root);
-	// We then loop through the children of that server
 	for (const server of ns.scan(root))
-		// If it's not already in the list, skip it
 		if (!found.has(server))
-			// Otherwise, call the function recursively, passing the children as root, and our list of already found servers
 			getServers(ns, server, found);
-	// Returns found servers, the ... converts the Set to an Array
 	return [...found];
 }
 
 /**@param {NS} ns @return {array} Array with server names that have more than 3GB of ram */
-export function getServersWithRam(ns, ram = 3, root = 'home', found = new Set()) {
+export function getServersWithRam(ns, root = 'home', found = new Set(), ram = 3) {
 	found.add(root);
 	for (const server of ns.scan(root))
 		if (!found.has(server))
-			getServers(ns, server, found);
+			getServersWithRam(ns, server, found);
 	let targetArray = [];
 	let servers = Array.from(found);
 	for (let i = 0; i < servers.length; i++) {

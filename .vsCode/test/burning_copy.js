@@ -18,13 +18,14 @@ export async function main(ns) {
 	ns.tail();
 	let logAreas = doc.querySelectorAll(".react-draggable .react-resizable");
 	let logArea = logAreas[logAreas.length - 1];
-	logArea.children[0].style.display = "none";
+	logArea.children[1].style.display = "none";
 	let canvas = logArea.appendChild(doc.createElement("canvas")),
 		ctx = canvas.getContext("2d");
 	canvas.width = "500";
 	canvas.height = "500";
 	canvas.style.height = "100%";
 	canvas.style.width = "100%";
+	logArea.style.width = "600px";
 
 	let width = 500;
 	let height = 500;
@@ -44,6 +45,10 @@ export async function main(ns) {
 	let particleA = [];
 	let randA = [];
 	//particleA.push(new Particle());
+
+	ns.atExit(() => {
+        logArea.removeChild(logArea.lastChild); //remove log
+    });
 
 	for (let i = 0; i < 100; i++) {
 		randA.push(randomInt(4, 8) / 10);
@@ -83,7 +88,7 @@ export async function main(ns) {
 			let a = map(this.lifee, 0, 140, 0, 1);
 			a = a < 0 ? 0 : a;
 			a = a > 0.1 ? 0.1 : a
-			a = 1;
+			//a = 1;
 			ctx.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${a})`;
 			//ctx.strokeStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${a} )`;
 
@@ -128,8 +133,8 @@ export async function main(ns) {
 	}
 
 	while (true) {
-		ctx.fillStyle = "rgba(0, 0, 0, 1)";
-		ctx.fillRect(0, 0, width, height);
+		ctx.fillStyle = "rgba(0, 0, 0, 0)";
+		ctx.clearRect(0, 0, width, height);
 		wind();
 		beat();
 

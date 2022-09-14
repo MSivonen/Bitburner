@@ -4,20 +4,32 @@ import {
 }
     from '/lib/includes.js'
 
-/** @param {NS} ns */
 /** @param {import('../.').NS} ns */
 export async function main(ns) {
-    let testO = {
-        name: "ooga booga",
-        value: 1234,
-        itnelligence: [3, 4, 2, 1]
+    class Testclass {
+        constructor(text_) {
+            this.text = text_;
+        }
+
+        show() {
+            return this.text + "xxx";
+        }
+
+        outside() {
+            return text;
+        }
+
+        nope() {
+            return text_;
+        }
     }
 
-    let customString = "";
+    let testingInClass = new Testclass("Hello");
+    let text = "outside of class";
 
-    for (const k of Object.keys(testO)) { if (k != "itnelligence") { ns.tprint(k); customString += k + testO[k]; } }
-    for (const v of Object.values(testO)) ns.tprint(v);
-    for (const e of Object.entries(testO)) ns.tprint(e);
-
-    ns.tprint(customString);
+    ns.tprint(testingInClass.text);
+    ns.tprint(testingInClass.show());
+    ns.tprint(text);
+    ns.tprint(testingInClass.outside());
+    ns.tprint(testingInClass.nope());
 }
