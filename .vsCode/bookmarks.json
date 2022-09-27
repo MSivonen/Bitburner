@@ -34,7 +34,7 @@
 					"label": "buyServers(moneyToSpend = 2, maxRam = ns.getPurchasedServerMaxRam()"
 				},
 				{
-					"line": 536,
+					"line": 550,
 					"column": 39,
 					"label": "openPorts2(ns, servers)"
 				},
@@ -49,32 +49,32 @@
 			"path": ".vsCode/bn4/startSin.js",
 			"bookmarks": [
 				{
-					"line": 89,
+					"line": 87,
 					"column": 19,
 					"label": "dynFunctions"
 				},
 				{
-					"line": 189,
+					"line": 187,
 					"column": 3,
 					"label": "==MAIN LOOP=="
 				},
 				{
-					"line": 256,
+					"line": 254,
 					"column": 20,
 					"label": "updateTail()"
 				},
 				{
-					"line": 284,
+					"line": 282,
 					"column": 33,
 					"label": "writeScript(func)"
 				},
 				{
-					"line": 292,
+					"line": 290,
 					"column": 22,
 					"label": "idle()"
 				},
 				{
-					"line": 496,
+					"line": 494,
 					"column": 27,
 					"label": "doHacking()"
 				},

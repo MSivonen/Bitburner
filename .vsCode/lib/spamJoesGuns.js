@@ -20,7 +20,6 @@ export async function main(ns) {
         useFile;
 
     if (typeof ns.args[0] == "string") target = ns.args[0];
-    ns.print("Target: " + target);
     while (true || ns.getHackingLevel() < ns.getServerRequiredHackingLevel("phantasy")) {
         if (ns.getServerSecurityLevel(target) > ns.getServerMinSecurityLevel(target))
             useFile = weakFile;
@@ -37,6 +36,6 @@ export async function main(ns) {
             }
         }
         //ns.hacknet.spendHashes("Reduce Minimum Security", "joesguns");
-        await ns.sleep(10);
+        await ns.sleep(1000);
     }
 }

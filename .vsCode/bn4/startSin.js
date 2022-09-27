@@ -2,7 +2,7 @@ import {
 	printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,
 	secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, openPorts2, getBestFaction, col
 }
-	from "/lib/includes.js"
+	from "lib/includes.js"
 
 
 const imports = `
@@ -34,12 +34,10 @@ export async function main(ns) {
 		wantGang = true,
 		timeToWaitForAugs = 300 * 1000,
 		augInstallTimer = 60000 * 400, //400min
-		firstRun = !(ns.singularity.getOwnedAugmentations(false).length > 2),
+		firstRun = ns.getTimeSinceLastAug() == ns.getPlayer().playtimeSinceLastBitnode,
 		wantAugNum = 10,
 		nextBN = 12,
-		startTime = ns.getTimeSinceLastAug(),
-		contractDelay = 60 * 21 * 1000,
-		gangServers = ["CSEC", "avmnite-02h", "I.I.I.I", "run4theh111z", "The-Cave", "w0r1d_d43m0n"];
+		contractDelay = 60 * 21 * 1000;
 
 	if (ns.getServer().hostname != "home")
 		await ns.scp("g_settings.txt", ns.getServer().hostname, "home");
@@ -197,7 +195,7 @@ export async function main(ns) {
 		//runStartScripts();
 		await updateSettings();
 		if (!overrideVars) {
-			if (ns.getHackingLevel() > 1000) wantJobs = true;
+			if (ns.getHackingLevel() > 1000 && g_sets.wantJobs) wantJobs = true;
 			else wantJobs = false;
 		}
 		while (paused) {
@@ -232,7 +230,7 @@ export async function main(ns) {
 			await copyProgs();
 			runFunc("joinFactions");
 			runFunc("backdoors");
-			//runFunc("endBN", nextBN);
+			runFunc("endBN", nextBN);
 			prevTime = ns.getTimeSinceLastAug();
 		}
 		await idle();

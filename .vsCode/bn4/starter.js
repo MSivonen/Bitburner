@@ -1,115 +1,192 @@
 import {
     printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,
-    secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, openPorts2, getBestFaction, col
+    secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, col, openPorts2, getBestFaction
 }
-    from '/lib/includes.js'
+    from 'lib/includes.js'
 
-/** @param {NS} ns */
 /** @param {import('../.').NS} ns */
 export async function main(ns) {
+    let g_queuePaused;
+    const libraries = ["/lib/includes.js", "/lib/tables_xsinx.js", "/lib/weak.js", "/lib/grow.js",];
+
     ns.disableLog("ALL");
     ns.tail();
-    if (ns.singularity.isBusy())
-        if (ns.singularity.getCurrentWork().type != "GRAFTING") ns.singularity.stopAction();
 
-    //PID -1 not started, -2 done
-    let spawnQueue = [
-        { name: "Buy programs", file: "/lib/buyPrograms.js", killAfter: -1, pid: -1 },
-        { name: "Log", file: "/watcher/watcher.js", killAfter: -1, pid: -1 },
-        { name: "Open ports", file: "/lib/openPorts.js", killAfter: -1, pid: -1 },
-        { name: "Spam JoesGuns", file: "/lib/spamJoesGuns.js", killAfter: 120, pid: -1 },
-        { name: "Stanek charge", file: "/stanek/stanek.js", killAfter: 120, pid: -1 },
-        { name: "Stanek charge", file: "/stanek/stanek.js", killAfter: -1, pid: -1 },
-        { name: "Homicide", file: "/bn4/spamHomicide.js", killAfter: 99e99, pid: -1 },
-        { name: "Run next starter", file: "/bn4/starter2.js", killAfter: -1, pid: -1 },
-    ];
-    const runLast = spawnQueue.pop();
-
-    ns.ps().forEach((ps) => spawnQueue.map(sf => { if (sf.file == ps.filename) sf.pid = ps.pid }));
-
-    let startTime = performance.now();
-    let i = 0;
-    while (i < spawnQueue.length) {
-        if (spawnQueue[i].pid == -2) { i++; continue; }
-        if (spawnQueue[i].pid <= -1)//not started //failed to start
-        {
-            ns.tprint(col.r + "------------" + spawnQueue[i].file);
-            printArray(ns, spawnQueue);
-            while (spawnQueue[i].pid == 0 || spawnQueue[i].pid == -1) {
-                printArray(ns, spawnQueue[i]);
-                spawnQueue[i].pid = ns.run(spawnQueue[i].file, 1, spawnQueue[i].killAfter);
-                await ns.sleep(1000);
-            }
-        }
-
-        if (spawnQueue[i].pid > 0)//started
-        {
-            if (spawnQueue[i].killAfter > 0)
-                if (startTime + spawnQueue[i].killAfter * 1000 <= performance.now()) {
-                    ns.kill(spawnQueue[i].pid);
-                    startTime = performance.now();
-                }
-            if (spawnQueue[i].killAfter == -1 || !ns.isRunning(spawnQueue[i].pid)) {
-                spawnQueue[i].pid = -2;
-                i++;
-            }
-        }
-
-        updateTail();
-        await ns.sleep(50);
+    function runningSomewhere(file) {
+        let running = [];
+        getServers(ns).forEach(s => {
+            ns.ps(s).forEach(f => {
+                if (f.filename.includes(file))
+                    running.push({
+                        server: s,
+                        filename: f.filename,
+                        pid: f.pid
+                    })
+            })
+        });
+        if (running.length != 0) return running;
+        else return;
     }
 
-    await ns.sleep(1000);
-    updateTail();
-    ns.singularity.upgradeHomeRam();
-    if (ns.singularity.isBusy())
-        if (ns.singularity.getCurrentWork().type != "GRAFTING") ns.singularity.stopAction();
-    ns.spawn(runLast.file);
+    async function runSomewhere(file, args) {
+        await ns.sleep();
+        await copyFiles();
+        let returnVal;
+        let servers = getServers(ns);
+        servers.sort((a, b) => (ns.getServerMaxRam(a) - ns.getServerUsedRam(a)) - (ns.getServerMaxRam(b) - ns.getServerUsedRam(b)));
+        for (const serv of servers) {
+            if (!ns.hasRootAccess(serv)) continue;
+            if (ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv) >= ns.getScriptRam(file)) {
+                if (args) returnVal = ns.exec(file, serv, 1, ...args); //return pid
+                else returnVal = ns.exec(file, serv, 1);
+                break;
+            }
+        }
+        if (returnVal == 0) returnVal = undefined;
+        return returnVal;
+    }
 
+    async function copyFiles() {
+        for (const serv of getServers(ns)) {
+            await ns.scp(libraries, serv);
+            for (const o of Object.values(spawnQueue))
+                await ns.scp(o.file, serv);
+        }
+    }
+
+    class RunFile {
+        constructor(o) {
+            this.name = o.name;
+            this.file = o.file;
+            this.killAfter = o.killAfter;
+            this.args = o.args;
+            this.pauseQueue = o.pauseQueue;
+            this.done = false;
+            this.pid = runningSomewhere(this.file)?.pop().pid; //pid or undefined
+            this.running = this.pid ? true : false;
+            this.timer = 0;
+            this.waitFor = o.waitFor;
+            this.queuePaused = true;
+            this.timeLeft = undefined;
+
+            if (this.waitFor) this.pauseQueue = true;
+            if (this.pid) this.done = true;
+        }
+
+        async run() {
+            //ns.tprint("trying to run " + this.file);
+            this.pid = await runSomewhere(this.file, this.args);
+            if (this.pid) {
+                //ns.tprint(this.name + " running...");
+                this.running = true;
+                if (this.killAfter) this.timer = performance.now() + this.killAfter * 1000;
+                if (this.waitFor) this.timer = performance.now() + this.waitFor * 1000;
+                if (!this.pauseQueue) this.queuePaused = false;
+                if (!this.killAfter && !this.waitFor && !this.pauseQueue) this.done = true;
+            }
+        }
+
+        async update() {
+            if (!this.pid && !this.done) await this.run();
+            if (this.killAfter || this.waitFor) {
+                this.timeLeft = Math.floor((this.timer - performance.now()) / 1000);
+            }
+            if (performance.now() > this.timer) {
+                if (this.killAfter && this.running)
+                    this.kill();
+                if (this.waitFor && !this.done) {
+                    //ns.tprint(this.name + " wait ended");
+                    this.done = true;
+                }
+            }
+
+            if (!runningSomewhere(this.file) && this.pid)
+                this.end();
+
+            if (this.done) this.queuePaused = false;
+        }
+
+        print() {
+            ns.tprint(this);
+            console.log(this);
+        }
+
+        end() {
+            //ns.tprint(this.name + " ending...");
+            this.done = true;
+            this.pid = undefined;
+            this.running = false;
+        }
+
+        kill() {
+            //ns.tprint(this.name + " killing...");
+            ns.kill(this.pid);
+            this.end();
+        }
+    }
 
     function updateTail() {
         ns.clearLog();
+        //ns.print("paused " + g_queuePaused)
         for (const o of spawnQueue) {
-            const running = ns.isRunning(o.pid);
-            ns.print(
-                o.pid == -1 ? col.r + " X " :
-                    o.pid == -2 ? col.g + " V " :
-                        col.w + "-> ",
-                col.c, o.name.padEnd(20),
-                o.pid > 0 && o.killAfter > 0 ? (
-                    " " + Math.floor((startTime + o.killAfter * 1000 - performance.now()) / 1000) + "s remaining")
-                    : "");
+            const qEntry = queue.find(x => x.name == o.name);
+            let line = "";
+            if (qEntry) {
+                line += qEntry.done ? col.g + " V " :
+                    qEntry.running ? col.w + "-> " :
+                        col.r + "OOM"; //out of memory, or WOO upside down. You decide.
+            } else
+                line += col.m + " X ";
+
+            line += col.c + o.name.padEnd(20);
+
+            if (qEntry && qEntry.timeLeft && !qEntry.done) line += col.w + qEntry.timeLeft + "s remaining";
+
+            ns.print(line);
         }
+        //printArray(ns, queue, "tail");
     }
 
-    async function playerJobs(job) {
-        if (ns.singularity.getCurrentWork().type == "GRAFTING") return;
-        switch (job) {
-            case "uni":
-                ns.print("Getting 200k moneys for travel to Volhaven");
-                sleeveJobs("money");
-                while (ns.getServerMoneyAvailable("home") <= 2e5) {
-                    if (!ns.singularity.isBusy()) ns.singularity.commitCrime("Homicide", true);
-                    await ns.sleep(100);
-                }
-                ns.singularity.travelToCity("Volhaven");
-                ns.singularity.universityCourse("ZB Institute of Technology", "Algorithms");
-                sleeveJobs("hack");
-        }
-    }
+    let spawnQueue = [ //args is a array!!!
+        { name: "Buy programs", file: "/lib/buyPrograms.js", killAfter: 250, args: [true] },
+        { name: "Log", file: "/watcher/watcher.js" },
+        { name: "Open ports", file: "/lib/openPorts.js", killAfter: 250, args: [true] },
+        { name: "Spam JoesGuns", file: "/lib/spamJoesGuns.js", killAfter: 120, args: ["n00dles"], pauseQueue: true },
+        { name: "Stanek charge", file: "/stanek/stanek.js", waitFor: 120, args: [118] },
+        { name: "Batcher", file: "/ver6/ver6.js" },
+        { name: "Commander", file: "/bn4/commando.js" }, //get to the choppa!
+        { name: "Homicide", file: "/bn4/spamHomicide.js", pauseQueue: true },
+        { name: "Old commander", file: "/bn4/startSin.js" },
+        { name: "hackNet", file: "/hacknet/hackNet.js" },
+        { name: "Start gang", file: "/gang/thugGang.js" },
+        //{ name: "Stocks", file: "/stock/stockXsinx.js" },
+        { name: "Sleeves", file: "/bn4/sleeves.js" }
+    ];
 
-    function sleeveJobs(job) {
-        if (job == "hack") {
-            ns.print("Sending sleeves to school");
-            for (let i = 0; i < ns.sleeve.getNumSleeves(); i++) {
-                ns.sleeve.travel(i, "Volhaven");
-                ns.sleeve.setToUniversityCourse(i, "ZB Institute of Technology", "Algorithms");
-            }
-        } else if (job == "money") {
-            ns.print("Sending sleeves into a mug");
-            for (let i = 0; i < ns.sleeve.getNumSleeves(); i++) {
-                ns.sleeve.setToCommitCrime(i, "Mug");
-            }
+    let queue = [];
+    let index = 0;
+
+    while (true) {
+        g_queuePaused = false;
+        queue.forEach(r => { if (r.queuePaused) g_queuePaused = true });
+
+        if (!g_queuePaused && index < spawnQueue.length) {
+            await copyFiles();
+            queue.push(new RunFile(spawnQueue[index]));
+            index++;
         }
+        for (const o of queue)
+            await o.update();
+
+        updateTail();
+
+        let done = true;
+        if (queue.length == spawnQueue.length) {
+            for (const o of queue)
+                if (!o.done) done = false;
+            if (done) break;
+        }
+
+        await ns.sleep(100);
     }
 }

@@ -44,7 +44,7 @@ export async function main(ns) {
 		CyberSec: "CyberSec",
 		Bladeburners: "Bladeburners",
 		ChurchOfTheMachineGod: "Church of the Machine God",
-		//ShadowsOfAnarchy: "Shadows of Anarchy",
+		ShadowsOfAnarchy: "Shadows of Anarchy",
 	}
 
 	for (let fact of Object.values(factions)) {

@@ -2,7 +2,7 @@
 	printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,
 	secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, openPorts2, getBestFaction, col
 }
-	from "/lib/includes.js"*/
+	from "lib/includes.js"*/
 
 export const col = {
 	"r": "\x1b[31m",
@@ -22,7 +22,7 @@ export function getBestFaction(ns, excluded = ["Church of the Machine God"], wan
 	if (firstRun) {
 		if (ns.getPlayer().factions.includes("NiteSec") &&
 			!ns.singularity.getAugmentationsFromFaction("NiteSec").every(e => {
-				return ns.singularity.getOwnedAugmentations(true).includes(e);
+				return ns.singularity.getOwnedAugmentations(true).includes(e); //player doesn't have them all
 			})) {
 			const augs = ns.singularity.getAugmentationsFromFaction("NiteSec").filter(e => {
 				return !ns.singularity.getOwnedAugmentations(true).includes(e);
@@ -161,12 +161,16 @@ export async function openPorts2(ns, servers) {
 	if (hacked == servers.length) allHacked = true;
 }
 
+/** @param {import('../.').NS} ns */
 export function readFromJSON(ns, filename = "/test/jsontest.txt") {
+	ns.scp(filename, ns.getServer().hostname, "home")
 	return JSON.parse(ns.read(filename));
 }
 
+/** @param {import('../.').NS} ns */
 export async function writeToJSON(ns, jsonObject, filename = "/test/jsontest.txt") {
 	await ns.write(filename, JSON.stringify(jsonObject), "w");
+	ns.scp(filename, "home");
 }
 
 /**Map input value to output range. 
@@ -211,7 +215,7 @@ export function printArray(ns, thisArray, log = "terminal") {
 
 	if (typeof thisArray == "number") {
 		printFunc("\x1b[38;5;79mPrintArray printing a number: " + thisArray);
-	} else	if (typeof thisArray == "string") {
+	} else if (typeof thisArray == "string") {
 		printFunc("\x1b[38;5;79mPrintArray printing a string: " + thisArray);
 	} else if (typeof thisArray !== 'object') {
 		printFunc("\x1b[35mPrintArray tried to print undefined or something:\n\x1b[41m" + (new Error().stack));
@@ -259,32 +263,17 @@ export function objectArraySort(ns, thisArray, value, big) { //objectArraySort(s
 
 /** @param {NS} ns @param seconds @return HH:MM:SS*/
 export function secondsToHMS(ns, s) {
-	let time = {
-		hours: ((s - s % 3600) / 3600) % 60,
-		minutes: ((s - s % 60) / 60) % 60,
-		seconds: s % 60
-	}
-	time.seconds = time.seconds.toFixed(0);
-	return time.hours + ":" + time.minutes + ":" + time.seconds;
+	return ns.nFormat(s, '00:00:00');
 }
 
-/** @param {NS} ns */
-export function getServers(ns, root = 'home', found = new Set()) {
-	found.add(root);
-	for (const server of ns.scan(root))
-		if (!found.has(server))
-			getServers(ns, server, found);
-	return [...found];
-}
+export const getServers = (ns, a = new Set(["home"])) => {
+	a.forEach(s => ns.scan(s).map(s => a.add(s)));
+	return [...a];
+};
 
 /**@param {NS} ns @return {array} Array with server names that have more than 3GB of ram */
-export function getServersWithRam(ns, root = 'home', found = new Set(), ram = 3) {
-	found.add(root);
-	for (const server of ns.scan(root))
-		if (!found.has(server))
-			getServersWithRam(ns, server, found);
-	let targetArray = [];
-	let servers = Array.from(found);
+export function getServersWithRam(ns, ram = 3, targetArray = []) {
+	let servers = getServers(ns);
 	for (let i = 0; i < servers.length; i++) {
 		if (ns.getServerMaxRam(servers[i]) >= ram) {
 			targetArray.push(servers[i]);
@@ -294,13 +283,8 @@ export function getServersWithRam(ns, root = 'home', found = new Set(), ram = 3)
 }
 
 /** @param {NS} ns @return {array} Array with server names that have money*/
-export function getServersWithMoney(ns, root = 'home', found = new Set()) {
-	found.add(root);
-	for (const server of ns.scan(root))
-		if (!found.has(server))
-			getServers(ns, server, found);
-	let targetArray = [];
-	let servers = Array.from(found);
+export function getServersWithMoney(ns, targetArray = []) {
+	let servers = getServers(ns);
 	for (let i = 0; i < servers.length; i++) {
 		if (ns.getServerMaxMoney(servers[i]) > 1000 && servers[i] != "home" && servers[i] != "fulcrumassets") {
 			targetArray.push(servers[i]);

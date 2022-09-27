@@ -15,24 +15,33 @@
 	// 	],
 	// 	"description": "Log output to console"
 	// }
-
 	"New file": {
-	 	"scope": "javascript,typescript",
-	 	"prefix": "newfile",
-	 	"body": [
+		"scope": "javascript,typescript",
+		"prefix": "newfile",
+		"body": [
 			"import {",
-				"printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,",
-				"secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, openPorts2, getBestFaction",
+			"printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,",
+			"secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, openPorts2, getBestFaction, col",
+			"}",
+			"from '/lib/includes.js'",
+			"",
+			"/** @param {NS} ns */",
+			"/** @param {import('../.').NS} ns */",
+			"export async function main(ns) {",
 			"}"
-				,"from '/lib/includes.js'",
-				"",
-				"/** @param {NS} ns */",
-				"/** @param {import('../.').NS} ns */",
-				"export async function main(ns) {",
-				"}"
-				 	],
-	 	"description": "New bb file template"
-
-
+		],
+		"description": "New bb file template"
+	},
+	"Make Objects": {
+		"scope": "javascript,typescript",
+		"prefix": "makeobjects",
+		"body": [
+			"const VARIABLE_Objects = Object.fromEntries(ARRAY.map(x => [x, {",
+			"maxRam: ns.getServerMaxRam(x),",
+			"whatever: true,",
+			"whosyourdaddy: Math.random() < .5 ? \"Zoë\" : \"Zätmän\"",
+			"}]));",
+		],
+		"description": "Make objects"
 	}
 }

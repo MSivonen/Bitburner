@@ -2,16 +2,11 @@ import {
 	printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,
 	secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, openPorts2, getBestFaction, col
 }
-	from "/lib/includes.js"
+	from "lib/includes.js"
 
 /** @param {import("../.").NS} ns */
 export async function main(ns) {
 	if (ns.gang.inGang() || ns.heart.break() <= -54000) return;
-	if (ns.singularity.isBusy())
-		while (ns.singularity.getCurrentWork().type == "GRAFTING") {
-			print("grafting...");
-			ns.sleep(5000);
-		}
 
 	ns.singularity.stopAction();
 
@@ -21,7 +16,7 @@ export async function main(ns) {
 	ns.disableLog("ALL");
 	const homicideStartTime = performance.now();
 	const homicideStartKarma = Math.floor(ns.heart.break());
-	let prevTime = performance.now() - 30200,
+	let prevTime = 0,
 		prevKarma = ns.heart.break(),
 		timeLeft = 0,
 		prevLogTime = performance.now() - 10000,
@@ -63,10 +58,10 @@ export async function main(ns) {
 
 		if (prevTime + 30200 < performance.now()) {
 			logA = [];
-			for (let i = 0; i < ns.sleeve.getNumSleeves(); i++) {
+			for (let i = 0; i < ns.sleeve.getNumSleeves() - 1; i++) {
 				let task = "";
 				let sleevesOA = [];
-				for (let slvNum = 0; slvNum < ns.sleeve.getNumSleeves(); slvNum++) {
+				for (let slvNum = 0; slvNum < ns.sleeve.getNumSleeves() - 1; slvNum++) {
 					sleevesOA.push({
 						stats:
 							ns.sleeve.getSleeveStats(slvNum).strength +
@@ -77,44 +72,44 @@ export async function main(ns) {
 						, shock: ns.sleeve.getSleeveStats(slvNum).shock
 					});
 				}
-				objectArraySort(ns, sleevesOA, "stats", "big");
-				objectArraySort(ns, sleevesOA, "shock", "small");
+				//objectArraySort(ns, sleevesOA, "stats", "big");
+				//objectArraySort(ns, sleevesOA, "shock", "small");
 
 				const slvNum = sleevesOA[i].num;
 				let agi = 40, str = 60, dex = 40, def = 40;
 
-				if (i < 7) {
+				if (i < 6) {
 					ns.sleeve.setToCommitCrime(slvNum, "homicide");
 					task = col.r + "\nHomicide";
-				} else
-					if (i == 7) {
-						ns.sleeve.setToShockRecovery(slvNum);
-						task = col.c + "\nGetting shocks";
-					} else {
-
-						if (ns.sleeve.getInformation(slvNum).city != "Sector-12")
-							if (!ns.sleeve.travel(slvNum, "Sector-12")) {
-								logA.push("ERROR not enough money for sleeve " + slvNum + " to travel to Sector-12")
-								continue;
-							}
-
-						if (ns.sleeve.getSleeveStats(slvNum).agility < agi) {
-							ns.sleeve.setToGymWorkout(slvNum, "Powerhouse Gym", "Agility");
-							task = col.y + "\nTraining agi";
+				} else {
+					ns.sleeve.setToShockRecovery(slvNum);
+					task = col.c + "\nGetting shocks";
+				}
+				/*else {
+	
+					if (ns.sleeve.getInformation(slvNum).city != "Sector-12")
+						if (!ns.sleeve.travel(slvNum, "Sector-12")) {
+							logA.push("ERROR not enough money for sleeve " + slvNum + " to travel to Sector-12")
+							continue;
 						}
-						if (ns.sleeve.getSleeveStats(slvNum).defense < def) {
-							ns.sleeve.setToGymWorkout(slvNum, "Powerhouse Gym", "defense");
-							task = col.y + "\nTraining def";
-						}
-						if (ns.sleeve.getSleeveStats(slvNum).dexterity < dex) {
-							ns.sleeve.setToGymWorkout(slvNum, "Powerhouse Gym", "Dexterity");
-							task = col.y + "\nTraining dex";
-						}
-						if (ns.sleeve.getSleeveStats(slvNum).strength < str) {
-							ns.sleeve.setToGymWorkout(slvNum, "Powerhouse Gym", "Strength");
-							task = col.y + "\nTraining str";
-						}
+	
+					if (ns.sleeve.getSleeveStats(slvNum).agility < agi) {
+						ns.sleeve.setToGymWorkout(slvNum, "Powerhouse Gym", "Agility");
+						task = col.y + "\nTraining agi";
 					}
+					if (ns.sleeve.getSleeveStats(slvNum).defense < def) {
+						ns.sleeve.setToGymWorkout(slvNum, "Powerhouse Gym", "defense");
+						task = col.y + "\nTraining def";
+					}
+					if (ns.sleeve.getSleeveStats(slvNum).dexterity < dex) {
+						ns.sleeve.setToGymWorkout(slvNum, "Powerhouse Gym", "Dexterity");
+						task = col.y + "\nTraining dex";
+					}
+					if (ns.sleeve.getSleeveStats(slvNum).strength < str) {
+						ns.sleeve.setToGymWorkout(slvNum, "Powerhouse Gym", "Strength");
+						task = col.y + "\nTraining str";
+					}
+				}*/
 
 				if (task.startsWith("\nTra")) atGym++;
 
@@ -130,9 +125,6 @@ export async function main(ns) {
 			}
 			prevTime = performance.now();
 		}
-
-		if (atGym > 0 && ns.hacknet.hashCost("Improve Gym Training") <= ns.hacknet.numHashes())
-			ns.hacknet.spendHashes("Improve Gym Training");
 		await ns.sleep(100);
 	}
 }

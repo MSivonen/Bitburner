@@ -1,22 +1,14 @@
-import { writeToJSON } from '/lib/includes'
-import { readFromJSON } from '/lib/includes'
-import { printArray } from '/lib/includes.js'
-import { openPorts } from '/lib/includes.js'
-import { objectArraySort } from '/lib/includes.js'
-import { getServers } from '/lib/includes.js'
-import { getServersWithRam } from '/lib/includes.js'
-import { getServersWithMoney } from '/lib/includes.js'
-//import { secondsToHMS } from '/lib/includes.js'
-//import { killAllButThis } from '/lib/includes.js'
-//import { connecter } from '/lib/includes.js'
-import { randomInt } from '/lib/includes.js'
-import { map } from '/lib/includes.js'
-//import { writeToJSON } from '/lib/includes.js'
-import { getBestFaction } from "/lib/includes.js"
+import {
+    printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,
+    secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, openPorts2, getBestFaction, col
+}
+    from "lib/includes.js"
 
 /** @param {NS} ns */
 /** @param {import('../.').NS} ns */
 export async function main(ns) {
+    const firstRun = ns.getTimeSinceLastAug() == ns.getPlayer().playtimeSinceLastBitnode;
+    let g_sets = readFromJSON(ns, "g_settings.txt");
 
     function travel(slvNum, city) {
         if (ns.sleeve.getInformation(slvNum).city != city)
@@ -30,6 +22,9 @@ export async function main(ns) {
     const sleevePort = ns.getPortHandle(2);
 
     while (true) {
+        g_sets = readFromJSON(ns, "g_settings.txt");
+        if (ns.getHackingLevel() > 1000 && g_sets.wantJobs && firstRun) g_sets.wantJobs = true;
+
         let jobsTaken = [],
             sleevesOA = [],
             excludedFactions = [],
@@ -50,6 +45,11 @@ export async function main(ns) {
         objectArraySort(ns, sleevesOA, "hack", "big");
         for (let i = 0; i < ns.sleeve.getNumSleeves(); i++) {
             const slvNum = sleevesOA[i].sleeveNumber;
+            if (ns.sleeve.getSleeveStats(slvNum).shock > 0) {
+                ns.sleeve.setToShockRecovery(slvNum);
+                sleeveText[slvNum] = "Sleeve " + slvNum + " getting shocks: " + ns.sleeve.getSleeveStats(slvNum).shock;
+                continue;
+            }
             if (ns.sleeve.getSleeveStats(slvNum).shock == 0) getSleeveAugs(slvNum);
             if (ns.sleeve.getSleeveStats(slvNum).sync < 50) {
                 ns.sleeve.setToSynchronize(slvNum);
@@ -113,40 +113,30 @@ export async function main(ns) {
                     { "NWO": "NWO" }
                 ];
 
-                let corpFactions = [
-                    "Blade Industries",
-                    "ECorp",
-                    "MegaCorp",
-                    "KuaiGong International",
-                    "Four Sigma",
-                    "NWO",
-                    "OmniTek Incorporated",
-                    "Bachman & Associates",
-                    "Clarke Incorporated",
-                    "Fulcrum Secret Technologies"
-                ];
-
                 let gotJob = false;
-                for (const corpO of jobCorps) { //don't work for company, if already in their fucktion
-                    if (ns.getPlayer().factions.includes(Object.values(corpO)[0])) {
-                        jobsTaken.push(Object.keys(corpO)[0]);
+                if (g_sets.wantJobs) {
+                    for (const corpO of jobCorps) { //don't work for company, if already in their fucktion
+                        if (ns.getPlayer().factions.includes(Object.values(corpO)[0])) {
+                            jobsTaken.push(Object.keys(corpO)[0]);
+                        }
                     }
-                }
 
-                for (const job of Object.keys(ns.getPlayer().jobs)) {
-                    if (jobsTaken.includes(job)) continue;
-                    if (ns.singularity.getCompanyRep(job) > 3e5) continue;
-                    ns.sleeve.setToCompanyWork(slvNum, job);
-                    sleeveText[slvNum] = "Sleeve " + slvNum + " company work: " + job + " rep: " + ns.nFormat(ns.singularity.getCompanyRep(job), "0a");
-                    jobsTaken.push(job);
-                    gotJob = true;
-                    break;
-                }
+                    for (const job of Object.keys(ns.getPlayer().jobs)) {
+                        if (jobsTaken.includes(job)) continue;
+                        if (ns.singularity.getCompanyRep(job) > 3e5) continue;
+                        ns.sleeve.setToCompanyWork(slvNum, job);
+                        sleeveText[slvNum] = "Sleeve " + slvNum + " company work: " + job + " rep: " + ns.nFormat(ns.singularity.getCompanyRep(job), "0a");
+                        jobsTaken.push(job);
+                        gotJob = true;
+                        break;
+                    }
 
-                if (gotJob) continue;
+                    if (gotJob) continue;
+                }
 
                 let sleeveFaction = "Nope";
                 sleeveFaction = getBestFaction(ns, excludedFactions).faction;
+                if (!excludedFactions.includes("NiteSec") && firstRun) sleeveFaction = "NiteSec";
                 if (sleeveFaction != "Nope" && sleeveFaction != null) {
                     if (!ns.sleeve.setToFactionWork(slvNum, sleeveFaction, "hacking contracts"))
                         ns.sleeve.setToFactionWork(slvNum, sleeveFaction, "field work");
@@ -160,29 +150,11 @@ export async function main(ns) {
                 sleeveText[slvNum] = "Sleeve " + slvNum + " syncing";
                 continue;
             }
-            /*if (ns.sleeve.getSleeveStats(slvNum).shock > 0) {
-                ns.sleeve.setToShockRecovery(slvNum);
-                sleeveText[slvNum] = "Sleeve " + slvNum + " getting shocks: " + ns.sleeve.getSleeveStats(slvNum).shock;
-                continue;
-            }*/
 
-            if (slvNum % 2 == 1) {
-                ns.sleeve.setToUniversityCourse(slvNum, "summit university", "Algorithms");
-                sleeveText[slvNum] = "Sleeve" + slvNum + " is idle; studying algorithms";
-            } else {
-                ns.sleeve.setToCommitCrime(slvNum, "homicide");
-                sleeveText[slvNum] = "Sleeve" + slvNum + " is idle; homiciding";
-            }
 
-            if (ns.getServerMoneyAvailable("home") > 1e9) {
-                travel(slvNum, "Volhaven");
-                ns.sleeve.setToUniversityCourse(slvNum, "ZB Institute of Technology", "Algorithms");
-                sleeveText[slvNum] = "Sleeve" + slvNum + " is studying algorithms";
-                continue;
-            } else {
-                ns.sleeve.setToCommitCrime(slvNum, "homicide");
-                sleeveText[slvNum] = "Sleeve" + slvNum + " is idle; homiciding";
-            }
+
+            ns.sleeve.setToShockRecovery(slvNum);
+            sleeveText[slvNum] = "Sleeve" + slvNum + " is idle; shocking";
 
             function getSleeveAugs(slave) {
                 let wantedSleeveAugs = [

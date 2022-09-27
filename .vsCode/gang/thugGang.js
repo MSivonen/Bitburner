@@ -2,7 +2,7 @@ import {
 	printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,
 	secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, openPorts2, getBestFaction
 }
-	from "/lib/includes.js"
+	from "lib/includes.js"
 
 
 /*TASKS
@@ -31,7 +31,7 @@ export async function main(ns) {
 	while (!ns.gang.inGang()) {
 		if (ns.gang.createGang("Slum Snakes")) break;
 		await ns.sleep(1000);
-		ns.tprint("Not in gang. Waiting...");
+		ns.print("Not in gang. Waiting...");
 	}
 
 	let maxWantedPenalty = 0.9;

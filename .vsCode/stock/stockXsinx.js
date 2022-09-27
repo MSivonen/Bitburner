@@ -1,4 +1,4 @@
-import { PrintTable, DefaultStyle, ColorPrint } from '/lib/tables_xsinx.js'
+import { PrintTable, DefaultStyle, ColorPrint } from 'lib/tables_xsinx.js'
 
 // Global variable indicating if we have full 4S data or not (it is automatically set/determined later in script no point changing the value here)
 let g_tixMode = false;

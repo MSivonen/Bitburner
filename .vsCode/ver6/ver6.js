@@ -2,7 +2,7 @@ import {
 	printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,
 	secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, openPorts2, getBestFaction
 }
-	from "/lib/includes.js"
+	from "lib/includes.js"
 
 
 
@@ -26,7 +26,7 @@ export async function main(ns) {
 		ramNeededForMoreTargets = 15000,
 		batchInterval = 80,
 		shareServers = ns.gang.inGang() ? 7 : 0,
-		useHashes = true,
+		useHashes = ns.args[0] ?? true,
 		useHacknetServersForBatching = true;
 
 
@@ -51,7 +51,7 @@ export async function main(ns) {
 		logA = [],
 		logTargetOA = [],
 		logServersA = [],
-		firstRun =  ns.getTimeSinceLastAug() == ns.getPlayer().playtimeSinceLastBitnode ? true : false;
+		firstRun = false;//ns.getTimeSinceLastAug() == ns.getPlayer().playtimeSinceLastBitnode;
 
 	const hackFile = "/ver6/hack6.js",
 		growFile = "/ver6/grow6.js",
@@ -76,15 +76,15 @@ export async function main(ns) {
 		if (prevTime + batchInterval * 5 < ns.getTimeSinceLastAug()) {
 			if (firstRun && ns.getHackingLevel() >= ns.getServerRequiredHackingLevel("phantasy")) singleTarget = "phantasy";
 			updateServers();
-			buyServers();
-			await initPservers();
+			//buyServers();
+			//await initPservers();
 
 			if (!allHacked) openPorts2(ns, getServers(ns));
 			targetsA = [];
 			const totalRam = serversOA.reduce((total, serv) => total + serv.maxRam, 0);
 			numberOfTargets = firstRun ? 1 : Math.max(1, Math.min(maxTargets, Math.ceil(totalRam / ramNeededForMoreTargets)));
 			moneyToSteal = [
-				[0, .02],
+				[0, .005],
 				[6000, .15],
 				[30000, .20],
 				[60000, .25],
@@ -93,7 +93,7 @@ export async function main(ns) {
 				[360000, .75],
 				[7000000, .9]
 			].filter(x => x[0] <= totalRam).pop()[1];
-			moneyToSteal = target == "n00dles" ? moneyToSteal * 8 : moneyToSteal;
+			moneyToSteal = target == "n00dles" ? moneyToSteal * 6 : moneyToSteal;
 			moneyToSteal = moneyToSteal > 0.9 ? 0.9 : moneyToSteal;
 
 			logServersA[0] = "Total ram in servers: " + ns.nFormat(serversOA.reduce((total, serv) => total + serv.freeRam, 0) * 1e9, "0.0b") + "/" + ns.nFormat(totalRam * 1e9, "0.0b");
@@ -519,20 +519,34 @@ export async function main(ns) {
 	}
 
 	function pickTarget(exclude = []) {//find the highest level target with hacking level at most half of player's hacking level
-		let targ = {
-			name: "n00dles",
-			level: 1
-		}
-		for (const serv of serversWithMoney) {
-			if (ns.getServerRequiredHackingLevel(serv) < ns.getHackingLevel() / 2
-				&& ns.getServerRequiredHackingLevel(serv) > targ.level
-				&& !exclude.includes(serv)
-				&& ns.hasRootAccess(serv)) {
-				targ.name = serv;
-				targ.level = ns.getServerRequiredHackingLevel(serv);
-			}
-		}
-		return (targ.name);
+		/* 		let targ = {
+					name: "n00dles",
+					level: 1
+				}
+				for (const serv of serversWithMoney) {
+					if (ns.getServerRequiredHackingLevel(serv) < ns.getHackingLevel() / 2
+						&& ns.getServerRequiredHackingLevel(serv) > targ.level
+						&& !exclude.includes(serv)
+						&& ns.hasRootAccess(serv)) {
+						targ.name = serv;
+						targ.level = ns.getServerRequiredHackingLevel(serv);
+					}
+				} */
+
+		let targets = getServersWithMoney(ns).filter(name => !exclude.includes(name));
+		if (targets.length == 0) return;
+		targets = targets.filter((ss) => {
+			let s = ns.getServer(ss);
+			s.moneyAvailable = s.moneyMax;
+			s.hackDifficulty = s.minDifficulty;
+			return ns.getHackingLevel(s.hostname) > ns.getServerRequiredHackingLevel(s.hostname) * 2 &&
+				ns.hasRootAccess(s.hostname) &&
+				ns.formulas.hacking.weakenTime(s, ns.getPlayer()) < 3 * 60 * 1000;
+		});
+
+		targets.sort((a, b) => ns.getServerMaxMoney(b) - ns.getServerMaxMoney(a));
+
+		return (targets.shift());
 		//todo: add checks for minsec and servers with same req hack lvl
 	}
 

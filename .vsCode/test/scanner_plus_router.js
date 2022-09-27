@@ -11,11 +11,11 @@ import {
 export async function main(ns) {
 
     const router = (server) => {
-        let route = [server]
+        let route = [server];
         while (server != "home") {
-            route.unshift(server = ns.scan(server)[0]);
+            route.unshift(server = ns.scan(server).shift());
         }
-        return route.join("; connect ");
+        return "\n\x1b[34m"+ route.join(";\n\x1b[37m connect \x1b[34m");
     }
 
     ns.tprint(router("4sigma"));
@@ -36,5 +36,5 @@ export async function main(ns) {
         return foundServers;
     }) => s())();
 
-    ns.tprint(servers);
+    //ns.tprint(servers);
 }

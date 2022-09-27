@@ -1,6 +1,6 @@
 /** @param {NS} ns **/
 export async function main(ns) {
-	const doc = document; // This is expensive! (25GB RAM) Perhaps there's a way around it? ;)
+	const doc = eval("document"); // This is expensive! (25GB RAM) Perhaps there's a way around it? ;)
 	const hook0 = doc.getElementById('overview-extra-hook-0');
 	const hook1 = doc.getElementById('overview-extra-hook-1');
 	while (true) {

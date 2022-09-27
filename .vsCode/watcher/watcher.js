@@ -1,6 +1,6 @@
 /** @param {NS} ns */
 
-import { readFromJSON, writeToJSON } from '/lib/includes';
+import { readFromJSON, writeToJSON } from 'lib/includes';
 
 /** @param {import('..').NS} ns */
 export async function main(ns) {
@@ -36,18 +36,24 @@ export async function main(ns) {
 
 
     // ============================== buttons ==============================
-    let g_sets = {
-        wantAugsInstalled: true,
-        wantBuyAugs: true,
-        wantHackNet: true,
-        wantJobs: true,
-        spamNeuroFlux: false,
-        overrideVars: false,
-        afkFocusOnWork: true,
-        paused: false
-    };
+    let g_sets;
+
     if (!ns.fileExists("g_settings.txt")) //if file doesn't exist, make it
-    { await writeToJSON(ns, g_sets, "g_settings.txt"); }
+    {
+        g_sets = {
+            wantAugsInstalled: true,
+            wantBuyAugs: true,
+            wantHackNet: true,
+            wantJobs: true,
+            spamNeuroFlux: false,
+            overrideVars: false,
+            afkFocusOnWork: true,
+            paused: false
+        };
+        await writeToJSON(ns, g_sets, "g_settings.txt");
+    } else {
+        g_sets = readFromJSON(ns, "g_settings.txt");
+    }
     for (const key of Object.keys(g_sets)) {
         if (!readFromJSON(ns, "g_settings.txt").hasOwnProperty(key)) { //if file doesn't have some of the variables, rewrite it
             await writeToJSON(ns, g_sets, "g_settings.txt");
