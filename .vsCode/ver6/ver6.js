@@ -11,15 +11,7 @@ import {
 /** @param {import("../.").NS} ns */
 export async function main(ns) {
 
-	let doc = eval("document");
 	ns.tail();
-	const tailElement = [...doc.querySelectorAll(".react-draggable")].pop();
-	tailElement.style.left = "1200px";
-	tailElement.style.top = "10px";
-	let tailElement2 = tailElement.firstChild;
-	tailElement2.style.width = "430px"; //default 500px
-	tailElement2.style.height = "500px"; //default 500px
-
 
 	const
 		maxTargets = 15, //oli 15
@@ -39,9 +31,6 @@ export async function main(ns) {
 		target,
 		targetsA = [],
 		prevTarget,
-		allServers = getServers(ns),
-		serversWithMoney = getServersWithMoney(ns),
-		allHacked = false,
 		prevTime = ns.getTimeSinceLastAug(),
 		moneyToSteal = 0.05,
 		serversOA = [],
@@ -51,7 +40,7 @@ export async function main(ns) {
 		logA = [],
 		logTargetOA = [],
 		logServersA = [],
-		firstRun = false;//ns.getTimeSinceLastAug() == ns.getPlayer().playtimeSinceLastBitnode;
+		firstRun = false;
 
 	const hackFile = "/ver6/hack6.js",
 		growFile = "/ver6/grow6.js",
@@ -76,15 +65,12 @@ export async function main(ns) {
 		if (prevTime + batchInterval * 5 < ns.getTimeSinceLastAug()) {
 			if (firstRun && ns.getHackingLevel() >= ns.getServerRequiredHackingLevel("phantasy")) singleTarget = "phantasy";
 			updateServers();
-			//buyServers();
-			//await initPservers();
 
-			if (!allHacked) openPorts2(ns, getServers(ns));
 			targetsA = [];
 			const totalRam = serversOA.reduce((total, serv) => total + serv.maxRam, 0);
 			numberOfTargets = firstRun ? 1 : Math.max(1, Math.min(maxTargets, Math.ceil(totalRam / ramNeededForMoreTargets)));
 			moneyToSteal = [
-				[0, .005],
+				[0, .01],
 				[6000, .15],
 				[30000, .20],
 				[60000, .25],
@@ -201,7 +187,7 @@ export async function main(ns) {
 		let pids = [];
 		for (const serv of serversOA) {
 			for (const thing of ns.ps(serv.name)) {
-				if (thing.filename.includes(["hack"])) {
+				if (thing.filename == hackFile) {
 					if (Object.values(thing.args).includes(targ)) {
 						pids.push(thing.pid)
 					}
@@ -210,7 +196,6 @@ export async function main(ns) {
 		}
 		pids.sort(function (a, b) { return b - a });
 		if (pids.length > 0) ns.kill(...pids.splice(pids.length - 1, 1));
-
 		for (let i = initQRunningOA.length - 1; i >= 0; i--) {
 			if (initQRunningOA.length > 0) {
 				if (initQRunningOA[i].endTime < ns.getTimeSinceLastAug()) {
@@ -225,7 +210,6 @@ export async function main(ns) {
 		for (let i = 0; i < serversOA.length; i++) {
 			let didntFit = false;
 
-			//objectArraySort(ns, serversOA, "freeRam", "big");
 			updateServers();
 
 			let maxMoney = ns.getServerMaxMoney(targ),
@@ -249,7 +233,9 @@ export async function main(ns) {
 				}
 			}
 			if (growThreads) ns.exec(growFile, serversOA[0].name, growThreads, targ, 1);
-			//ns.tprint("Init growing " + targ + ", threads: " + growThreads + " hacserver: " + serversOA[0].name);
+			//ns.tprint("Init growing " + targ + ", threads: " + growThreads + " hacserver: " + serversOA[0].name +
+			//	" free ram: " + (ns.getServerMaxRam(serversOA[0].name) - ns.getServerUsedRam(serversOA[0].name)) +
+			//	" ram needed: " + (growThreads * growRam));
 			serversOA[0].freeRam -= growThreads * growRam;
 
 			objectArraySort(ns, serversOA, "freeRam", "big");
@@ -440,98 +426,12 @@ export async function main(ns) {
 		targetO.weak2Threads = Math.max(2, Math.ceil(
 			(serverObject.hackDifficulty + (targetO.growThreads * 0.004)) / 0.05));
 
-		// targetO.weak2Threads = Math.max(1, Math.ceil(
-		// 	ns.growthAnalyzeSecurity(targetO.growThreads, targetServ, numCores)
-		// 	/ ns.weakenAnalyze(1, numCores)));
 		targetO.weakTime = Math.ceil(ns.formulas.hacking.weakenTime(serverObject, playerObject));
 
 		return targetO;
 	}
 
-	function buyServers(maxRam = ns.getPurchasedServerMaxRam()) {
-		const maxServers = ns.getPurchasedServerLimit();
-		if (maxServers == 0) return;
-		let ram,
-			biggestServer,
-			smallestServer,
-			serversOA = [];
-		let buy = false;
-		let allPservers = ns.getPurchasedServers();
-		if (allPservers.length > 0) {
-			allPservers.forEach(s => { serversOA.push({ name: s, ram: ns.getServerMaxRam(s) }) });
-			biggestServer = serversOA.reduce((prev, current) => {
-				return (prev.ram > current.ram) ? prev : current
-			});
-			smallestServer = serversOA.reduce((prev, current) => {
-				return (prev.ram < current.ram) ? prev : current
-			});
-		}
-
-		if (biggestServer == undefined) ram = 8; //no pservers
-		else ram = biggestServer.ram;
-
-		while (ram < maxRam && ns.getServerMoneyAvailable("home") > ns.getPurchasedServerCost(ram * 2)) {
-			ram *= 2; //increase ram until happy
-			buy = true;
-			if (ram >= maxRam) {
-				ram = maxRam;
-				buy = true;
-			}
-		}
-		if (smallestServer != undefined)
-			if (ram == smallestServer.ram) return;
-
-		if (buy) {
-			if (serversOA.length == maxServers) {
-				ns.killall(smallestServer.name);
-				ns.deleteServer(smallestServer.name);
-			}
-			let servNumbers = [];
-			for (const s of serversOA)
-				servNumbers.push(Number(s.name.substring(7)));
-			let servNumber = 0;
-			for (let i = 0; i < maxServers; i++)
-				if (!servNumbers.includes(i)) {
-					servNumber = i;
-					break;
-				}
-			if (ns.purchaseServer("perkele" + servNumber, ram) != "") {
-				ns.tprint("Purchased perkele" + servNumber + " with " + ram + "GB of ram.");
-				ns.getPurchasedServers().forEach(serv => ns.scp(allFiles, serv));
-			}
-			else ns.tprint("ERROR something went wrong purchasing server. Perkele. Money needed: " +
-				ns.nFormat(ns.getPurchasedServerCost(ram), "0.00a"));
-		}
-	}
-
-	async function initPservers() {
-		updateServers();
-		let allPservers = ns.getPurchasedServers();
-
-		for (let i = 1; i < Math.min(shareServers, allPservers.length / 2); i++) {
-			if (!ns.fileExists("/lib/share.js", allPservers[i]))
-				await ns.scp("/lib/share.js", allPservers[i]);
-			if (!ns.isRunning("/lib/share.js", allPservers[i])) {
-				let threads = Math.floor(ns.getServerMaxRam(allPservers[i]) / ns.getScriptRam("/lib/share.js", allPservers[i]));
-				if (threads) ns.exec("/lib/share.js", allPservers[i], threads);
-			}
-		}
-	}
-
 	function pickTarget(exclude = []) {//find the highest level target with hacking level at most half of player's hacking level
-		/* 		let targ = {
-					name: "n00dles",
-					level: 1
-				}
-				for (const serv of serversWithMoney) {
-					if (ns.getServerRequiredHackingLevel(serv) < ns.getHackingLevel() / 2
-						&& ns.getServerRequiredHackingLevel(serv) > targ.level
-						&& !exclude.includes(serv)
-						&& ns.hasRootAccess(serv)) {
-						targ.name = serv;
-						targ.level = ns.getServerRequiredHackingLevel(serv);
-					}
-				} */
 
 		let targets = getServersWithMoney(ns).filter(name => !exclude.includes(name));
 		if (targets.length == 0) return;
@@ -547,30 +447,5 @@ export async function main(ns) {
 		targets.sort((a, b) => ns.getServerMaxMoney(b) - ns.getServerMaxMoney(a));
 
 		return (targets.shift());
-		//todo: add checks for minsec and servers with same req hack lvl
-	}
-
-	/** @param {import("../.").NS} ns */
-	function openPorts2(ns, servers) {
-		updateServers();
-		let hacked = 0;
-		let progs = ["brutessh.exe", "ftpcrack.exe", "relaysmtp.exe", "httpworm.exe", "sqlinject.exe"];
-		const ownedProgs = progs.filter((x) => ns.fileExists(x));
-		for (const serv of servers) {
-			for (const prog of ownedProgs) {
-				switch (prog) {
-					case "brutessh.exe": ns.brutessh(serv); break;
-					case "ftpcrack.exe": ns.ftpcrack(serv); break;
-					case "relaysmtp.exe": ns.relaysmtp(serv); break;
-					case "httpworm.exe": ns.httpworm(serv); break;
-					case "sqlinject.exe": ns.sqlinject(serv); break;
-				}
-			}
-			if (ns.getServerNumPortsRequired(serv) <= ownedProgs.length) {
-				ns.nuke(serv);
-				hacked++;
-			}
-		}
-		if (hacked == servers.length) allHacked = true;
 	}
 }

@@ -7,7 +7,8 @@ import {
 /** @param {import('../.').NS} ns */
 export async function main(ns) {
     let g_queuePaused;
-    const libraries = ["/lib/includes.js", "/lib/tables_xsinx.js", "/lib/weak.js", "/lib/grow.js",];
+    const libraries = ["/lib/includes.js", "/lib/tables_xsinx.js", "/lib/weak.js", "/lib/grow.js",
+        "/ver6/hack6.js", "/ver6/grow6.js", "/ver6/weak6.js"];
 
     ns.disableLog("ALL");
     ns.tail();
@@ -34,11 +35,14 @@ export async function main(ns) {
         let returnVal;
         let servers = getServers(ns);
         servers.sort((a, b) => (ns.getServerMaxRam(a) - ns.getServerUsedRam(a)) - (ns.getServerMaxRam(b) - ns.getServerUsedRam(b)));
+        //printArray(ns,servers)
+
         for (const serv of servers) {
             if (!ns.hasRootAccess(serv)) continue;
             if (ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv) >= ns.getScriptRam(file)) {
                 if (args) returnVal = ns.exec(file, serv, 1, ...args); //return pid
                 else returnVal = ns.exec(file, serv, 1);
+                ns.tprint(file, serv, returnVal)
                 break;
             }
         }
@@ -152,19 +156,21 @@ export async function main(ns) {
         { name: "Log", file: "/watcher/watcher.js" },
         { name: "Open ports", file: "/lib/openPorts.js", killAfter: 250, args: [true] },
         { name: "Spam JoesGuns", file: "/lib/spamJoesGuns.js", killAfter: 120, args: ["n00dles"], pauseQueue: true },
-        { name: "Stanek charge", file: "/stanek/stanek.js", waitFor: 120, args: [118] },
-        { name: "Batcher", file: "/ver6/ver6.js" },
+        { name: "Stanek charge", file: "/stanek/stanek.js", waitFor: 120, args: [110] },
         { name: "Commander", file: "/bn4/commando.js" }, //get to the choppa!
+        { name: "Batcher", file: "/ver6/ver6.js" },
         { name: "Homicide", file: "/bn4/spamHomicide.js", pauseQueue: true },
         { name: "Old commander", file: "/bn4/startSin.js" },
         { name: "hackNet", file: "/hacknet/hackNet.js" },
         { name: "Start gang", file: "/gang/thugGang.js" },
-        //{ name: "Stocks", file: "/stock/stockXsinx.js" },
+        { name: "Stocks", file: "/stock/stockXsinx.js" },
         { name: "Sleeves", file: "/bn4/sleeves.js" }
     ];
 
     let queue = [];
     let index = 0;
+
+    ns.atExit(() => ns.closeTail());
 
     while (true) {
         g_queuePaused = false;

@@ -23,7 +23,7 @@ export async function main(ns) {
 	/**Path for dynamic scripts */
 	const path = "/bn4/dynScripts/",
 		logPort = ns.getPortHandle(1),
-		wantGang = false,
+		wantGang = true,
 		timeToWaitForAugs = 300 * 1000,
 		augInstallTimer = 60000 * 400, //400min
 		firstRun = ns.getTimeSinceLastAug() == ns.getPlayer().playtimeSinceLastBitnode,

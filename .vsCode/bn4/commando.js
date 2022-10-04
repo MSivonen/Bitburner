@@ -16,7 +16,9 @@ export async function main(ns) {
         weak: "/ver6/weak6.js",
         share: "/lib/share.js",
         tables: "/lib/tables_xsinx.js",
-        stocks: "/stock/stockXsinx.js"
+        stocks: "/stock/stockXsinx.js",
+        openPorts: "/lib/openPorts.js",
+        buyPrograms: "/lib/buyPrograms.js"
     };
 
     const shareServers = ns.gang.inGang() ? 7 : 0,
@@ -38,10 +40,13 @@ export async function main(ns) {
     await copyFiles();
 
     while (true != !true) {
-        if (numAugsBought() < augsToInstall)
+        if (numAugsBought() < augsToInstall - 5)
             for (const t of spendMoneyFunctions)
                 await t();
         await share();
+        await runSomewhere(allFiles.openPorts);
+        if (!runningSomewhere(allFiles.buyPrograms))
+            await runSomewhere(allFiles.buyPrograms);
         updateTail();
         await ns.sleep(200);
     }
@@ -64,6 +69,24 @@ export async function main(ns) {
         ns.print(col.c + "Grafting aug: " + col.w + tailObject.grafting);
         ns.print(col.c + "All graftable augs: \n" + col.w + tailObject.graftables);
 
+    }
+
+    async function runSomewhere(file, args) {
+        await ns.sleep();
+        await copyFiles();
+        let returnVal;
+        let servers = getServers(ns);
+        servers.sort((a, b) => (ns.getServerMaxRam(a) - ns.getServerUsedRam(a)) - (ns.getServerMaxRam(b) - ns.getServerUsedRam(b)));
+        for (const serv of servers) {
+            if (!ns.hasRootAccess(serv)) continue;
+            if (ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv) >= ns.getScriptRam(file)) {
+                if (args) returnVal = ns.exec(file, serv, 1, ...args); //return pid
+                else returnVal = ns.exec(file, serv, 1);
+                break;
+            }
+        }
+        if (returnVal == 0) returnVal = undefined;
+        return returnVal;
     }
 
     function runningSomewhere(file) {
@@ -107,13 +130,17 @@ export async function main(ns) {
     }
 
     function graftAug(type = "rep") {
-        if (ns.getBitNodeMultipliers().HackingLevelMultiplier * ns.getPlayer().mults.hacking > 12) return;
         let augs = getGrafableAugs(type);
-        if (augs.length < 2) {
+        if (augs.length < 2 || ns.gang.inGang()) {
             augs = getGrafableAugs("hacking");
             if (augs.length < 4) augs = [];
         }
-
+        if (ns.getBitNodeMultipliers().HackingLevelMultiplier * ns.getPlayer().mults.hacking > 12) {
+            if (augs.includes("nickofolas Congruity Implant"))
+                augs = ["nickofolas Congruity Implant"];
+            else
+                return;
+        }
         tailObject.graftables = "";
 
         for (const a of augs) {
@@ -139,8 +166,9 @@ export async function main(ns) {
         }
         if (!augs) return;
 
+        let lowestPrice = augs.reduce((a, b) => ns.grafting.getAugmentationGraftPrice(b) > ns.grafting.getAugmentationGraftPrice(a) ? a : b);
 
-        if (ns.grafting.getAugmentationGraftPrice(augs.at(-1)) < ns.getServerMoneyAvailable("home")) {
+        if (ns.grafting.getAugmentationGraftPrice(lowestPrice) < ns.getServerMoneyAvailable("home")) {
             if (ns.getPlayer().city != "New Tokyo")
                 if (!ns.singularity.travelToCity("New Tokyo")) return;
             for (const a of augs)
@@ -155,14 +183,18 @@ export async function main(ns) {
         let augs = ns.grafting.getGraftableAugmentations().
             filter(a => ns.singularity.getAugmentationStats(a)[type] > 1).
             sort((a, b) => ns.grafting.getAugmentationGraftPrice(b) - ns.grafting.getAugmentationGraftPrice(a));
+        if (type == "faction_rep")
+            augs.sort((a, b) => ns.singularity.getAugmentationStats(b).faction_rep - ns.singularity.getAugmentationStats(a).faction_rep);
+        else
+            augs.sort((a, b) => ns.singularity.getAugmentationStats(b).hacking - ns.singularity.getAugmentationStats(a).hacking);
         if (ns.grafting.getGraftableAugmentations().includes("nickofolas Congruity Implant")) augs.unshift("nickofolas Congruity Implant");
-        if (augs.length == 0) return;
+        if (augs.length == 0) return [];
         return augs;
     }
 
     async function copyFiles() {
         for (const serv of getServers(ns)) {
-            await ns.scp(Object.values(allFiles), serv);
+            await ns.scp(Object.values(allFiles), serv, "home");
         }
     }
 

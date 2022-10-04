@@ -12,12 +12,12 @@ export async function main(ns) {
 	let logWindow = draggables[draggables.length - 1]; // Reference to the full log window, not just the log area. Needed because the buttons aren't in the log area.
 
 	let killButton = logWindow.querySelector("button");
-	let pauseButton = killButton.cloneNode(); //copies the kill button for styling purposes
-	pauseButton.addEventListener("click", () => {
+	let quitButton = killButton.cloneNode(); //copies the kill button for styling purposes
+	quitButton.addEventListener("click", () => {
 		paused = !paused;
 	})
-	pauseButton.innerText = "Quit unrandomizing";
-	killButton.insertAdjacentElement("beforeBegin", pauseButton);
+	quitButton.innerText = "Quit unrandomizing";
+	killButton.insertAdjacentElement("beforeBegin", quitButton);
 
 	killAllButThis(ns);
 	ns.singularity.commitCrime("Mug Someone");

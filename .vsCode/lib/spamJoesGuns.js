@@ -7,11 +7,7 @@ import {
 /** @param {NS} ns */
 /** @param {import('..').NS} ns */
 export async function main(ns) {
-    ns.tail();
     ns.disableLog("ALL");
-    const doc = eval("document");
-    const logArea = [...doc.querySelectorAll(".react-draggable .react-resizable")].pop();
-    logArea.style = "";
     // ns.run("/hacknet/hackNet.js");
 
     let target = "n00dles",
@@ -25,7 +21,7 @@ export async function main(ns) {
             useFile = weakFile;
         else useFile = growfile;
         for (const serv of getServersWithRam(ns)) {
-            if (serv.startsWith("hacknet-node")) continue;
+            //if (serv.startsWith("hacknet-node")) continue;
             let servRam = ns.getServerMaxRam(serv);
             if (serv == "home") servRam -= 30;
             const threads = Math.floor((
@@ -36,6 +32,6 @@ export async function main(ns) {
             }
         }
         //ns.hacknet.spendHashes("Reduce Minimum Security", "joesguns");
-        await ns.sleep(1000);
+        await ns.sleep(50);
     }
 }

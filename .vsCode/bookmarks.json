@@ -4,44 +4,34 @@
 			"path": ".vsCode/ver6/ver6.js",
 			"bookmarks": [
 				{
-					"line": 71,
+					"line": 60,
 					"column": 52,
 					"label": "MAIN LOOP"
 				},
 				{
-					"line": 136,
+					"line": 122,
 					"column": 21,
 					"label": "updateTail()"
 				},
 				{
-					"line": 162,
+					"line": 148,
 					"column": 10,
 					"label": "updateServers()"
 				},
 				{
-					"line": 196,
+					"line": 182,
 					"column": 32,
 					"label": "initializeTarget(targ)"
 				},
 				{
-					"line": 270,
+					"line": 256,
 					"column": 22,
 					"label": "badger(targ)"
 				},
 				{
-					"line": 448,
+					"line": 431,
 					"column": 83,
 					"label": "buyServers(moneyToSpend = 2, maxRam = ns.getPurchasedServerMaxRam()"
-				},
-				{
-					"line": 550,
-					"column": 39,
-					"label": "openPorts2(ns, servers)"
-				},
-				{
-					"line": 21,
-					"column": 1,
-					"label": ""
 				}
 			]
 		},
@@ -49,39 +39,34 @@
 			"path": ".vsCode/bn4/startSin.js",
 			"bookmarks": [
 				{
-					"line": 87,
+					"line": 79,
 					"column": 19,
 					"label": "dynFunctions"
 				},
 				{
-					"line": 187,
+					"line": 179,
 					"column": 3,
 					"label": "==MAIN LOOP=="
 				},
 				{
-					"line": 254,
+					"line": 246,
 					"column": 20,
 					"label": "updateTail()"
 				},
 				{
-					"line": 282,
+					"line": 274,
 					"column": 33,
 					"label": "writeScript(func)"
 				},
 				{
-					"line": 290,
+					"line": 282,
 					"column": 22,
 					"label": "idle()"
 				},
 				{
-					"line": 494,
+					"line": 486,
 					"column": 27,
 					"label": "doHacking()"
-				},
-				{
-					"line": 28,
-					"column": 1,
-					"label": ""
 				}
 			]
 		},

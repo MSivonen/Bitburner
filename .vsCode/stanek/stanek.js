@@ -30,7 +30,6 @@ export async function main(ns) {
 
     async function setup() {
         ns.stanek.acceptGift();
-        ns.tail();
         ns.disableLog("ALL");
 
         for (const file of ns.ls("home"))

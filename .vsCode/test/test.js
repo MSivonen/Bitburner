@@ -4,68 +4,27 @@ import {
 }
     from '/lib/includes.js'
 
+
+
+
 /** @param {NS} ns */
 /** @param {import('../.').NS} ns */
 export async function main(ns) {
 
-    /** Array[y][x] */
-    let arrrr = [
-        [0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    ]
+    ns.tprint(ns.hackAnalyzeChance("n00dles"));
 
-    let arrrr2 = [
-        [1, 1, 1],
-        [1, 1, 1],
-        [1, 1, 1],
-    ]
-
-    ns.tprint(arrrr2.entries())
-
-    function insertWindow(arr1, arr2, startY, startX) {
-        for (const [i, iArr] of arr2.entries()) {
-            arr1[i + startY].splice(startX, iArr.length, ...iArr);
-        }
-    }
-
-    insertWindow(arrrr, arrrr2, 3, 4);
-    printArray(ns, arrrr)
-
-    /*result==[
-    [0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,1,1,1,0],
-    [0,0,0,0,0,1,1,1,0],
-    [0,0,0,0,0,1,1,1,0],
-    [0,0,0,0,0,0,0,0,0],
-    ]*/
     return
-    let exclude = ["joesguns"]
-
-    let targets = getServersWithMoney(ns).filter(name => !exclude.includes(name));
-    if (targets.length == 0) return;
-    targets = targets.filter((ss) => {
-        let s = ns.getServer(ss);
-        s.moneyAvailable = s.moneyMax;
-        s.hackDifficulty = s.minDifficulty;
-        return ns.getHackingLevel(s.hostname) > ns.getServerRequiredHackingLevel(s.hostname) * 2 &&
-            ns.hasRootAccess(s.hostname) &&
-            ns.formulas.hacking.weakenTime(s, ns.getPlayer()) < 3 * 60 * 1000;
-    });
-
-    printArray(ns, targets)
-
-    return;
-    ns.tail();
     ns.disableLog("ALL");
     ns.clearLog();
 
     let chars = [" ", "░", "▒", "▓", "█"];
     // chars = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'."
+    const edges = {
+        nw: "╔", h: "═", ne: "╗",
+        tw: "╟", t: "─", te: "╢",
+        v: "║",
+        sw: "╚", se: "╝"
+    }
     let w = 80, h = 60;
 
     let characterA = [];
@@ -79,89 +38,213 @@ export async function main(ns) {
     let index = 1;
     let acc = 1;
 
-    class Line {
-        constructor(text_, lineLength_, xStart_, yStart_, color_, title_) {
-            this.title = title_ ?? false;
-            this.lineLength = lineLength_;
-            this.color = color_ ?? col.g;
-            this.text = text_;
+    class Region {
+        /**@param h_ number of lines + 2 lines for borders
+         * @param w_ number of columns + 2 cols for borders
+         */
+        constructor(xStart_, yStart_, w_, h_, textColor_ = col.off, titleColor_ = col.c, borderColor_ = col.w) {
             this.xStart = xStart_;
             this.yStart = yStart_;
+            this.w = w_ + 2;
+            this.h = h_ + 3;
+            this.lines = [];
+            this.region = [];
+            this.borderColor = borderColor_;
+            this.titleColor = titleColor_;
+            this.textColor = textColor_;
         }
 
-        textToArray() {
-            const tempText = this.color + this.text;
-            let tempA = [];
-            for (let i = 0; i < tempText.length; i++) {
-                let tempChar = tempText[i];
-                if (tempText[i] == "\x1b") {
-                    while (tempText[i] != "m") {
-                        i++;
-                        tempChar += tempText[i];
-                    }
-                    i++;
-                    tempChar += tempText[i];
+        /*addLine(text, title, color) {
+            this.lines.push({ text: text, title: title, color: color });
+        }*/
 
-                }
-                tempA.push(tempChar);
+        addLine(obj) {
+            this.lines.push(obj);
+        }
+
+        addArray(arr = [], title, color) {
+            if (title) this.lines.push({ text: arr.shift(), title: true });
+            for (const a of arr) {
+                this.lines.push({ text: a, color: color });
             }
+        }
+
+        /**@param title true|"div"|undefined ---> title|divider|text*/
+        makeLine(text = " ", title, color) {
+            let tempA = [];
+            if (title === true) {
+                color = color ?? this.titleColor;
+                tempA.push(textToArray(text, this.w, color, this.borderColor));
+                tempA.push(textToArray(undefined, this.w, undefined, this.borderColor, "div"));
+            } else if (title == "div") {
+                tempA.push(textToArray(undefined, this.w, undefined, this.borderColor, "div"));
+            }
+            else {
+                color = color ?? this.textColor;
+                tempA.push(textToArray(text, this.w, color, this.borderColor));
+            }
+
             return tempA;
         }
 
-        insertText(y, x) {
-            let tempA = this.textToArray()
-            for (let i = 0; i < this.lineLength; i++) {
-                characterA[this.yStart][this.xStart + i] = tempA[i] ?? " ";
+        debug() {
+            printArray(ns, this.region);
+        }
+
+        update() {
+            //  let title = this.region.splice(1, 1);
+            this.makeRegion();
+            // ns.tprint(title)
+            // this.region.splice(1, 0, title[0]);
+        }
+
+        makeRegion() {
+            this.region = [];
+
+            this.region.push(textToArray(undefined, this.w, undefined, this.borderColor, "top"));
+
+            while (this.lines.length < this.h - 2) {
+                this.lines.push({});
             }
+
+            for (const line of this.lines) {
+                for (const makedLine of this.makeLine(line.text, line.title, line.color))
+                    this.region.push(makedLine);
+            }
+
+            this.region.push(textToArray(undefined, this.w, undefined, this.borderColor, "bottom"));
         }
     }
 
-    class AllText {
-        /**@param cols{[array]} columns' x start points */
-        constructor(cols) {
-            this.linesCA = [];
-            this.columns = cols;
-            this.lineLengths = [];
-
-            for (let i = 0; i < this.columns.length; i++) {
-                this.lineLengths[i] = (this.columns[i + 1] ?? w) - 1 - this.columns[i];
-            }
-
-            for (let i = 0; i < cols.length; i++) {
-                this.linesCA.push([]);
-            }
-
+    class Layout {
+        constructor(w_, h_) {
+            this.regions = [];
+            this.w = w_;
+            this.h = h_;
         }
 
-        addLine(text_, column_, title_) {
-            const yStart = this.linesCA[column_].length + 1;
-            this.linesCA[column_].push(new Line(text_, this.lineLengths[column_], this.columns[column_], yStart, title_));
-            h = this.linesCA.reduce((acc, arr) => (acc.length > arr.length) ? acc : arr).length + 2;
+        addRegion(reg) {
+            this.regions.push(reg);
         }
+
+        debug() {
+            printArray(ns, characterA);
+        }
+
+        insertRegion(region, arr1 = characterA) {
+            let arr2 = region.region;
+            for (const [i, reg] of arr2.entries()) {
+                arr1[i + region.yStart].splice(region.xStart, reg.length, ...reg);
+            }
+        }
+
+        showAll() {
+            for (const reg of this.regions)
+                this.insertRegion(reg);
+        }
+
+        update() {
+            for (const reg of this.regions) {
+                reg.update();
+            }
+        }
+
     }
 
-    let allText = new AllText([1, 15, 45]);
-    allText.addLine("test" + col.r + "ing", 0);
-    allText.addLine("asdasdadasdasda", 1);
-    for (let i = 0; i < 40; i++)
-        allText.addLine(Math.random(), 2);
-    for (let i = 0; i < 8; i++)
-        allText.addLine("uiouioui", 1);
+    let layout = new Layout(60, 40);
+
+    let reg1 = new Region(3, 3, 15, 6, undefined, col.y);
+    reg1.addLine({ text: "Too long title, damnit", title: true });
+    reg1.addLine({ text: "Moro" + col.r + " mucho texto unfittable", color: col.y });
+    reg1.makeRegion();
+    //reg1.debug();
+
+    let reg2 = new Region(13, 13, 25, 5, col.c, col.w);
+    reg2.addLine({ text: "Random numbers", title: true });
+    for (let i = 0; i < 20; i++) {
+        reg2.addLine({ text: Math.random() });
+    }
+    reg2.makeRegion();
+
+    let reg3 = new Region(20, 17, 30, 16, col.y, col.g, col.b);
+    const reg3Arr = ["hello", "world", 123, "hi"];
+    reg3.addArray(reg3Arr, "From array");
+    reg3.makeRegion();
+
+    layout.addRegion(reg1);
+    layout.addRegion(reg2);
+    layout.addRegion(reg3);
+    makeBackground(chars);
+    // layout.debug();
+
 
     while ("yes") {
-        makeEdges(chars, index);
-        for (const a of allText.linesCA[2])
-            a.text = Math.random();
-        for (const a of allText.linesCA)
-            for (const l of a)
-                l.insertText(2, 5);
+        makeBackground(chars, index);
+        // reg1.debug()
+        layout.update();
+        layout.showAll();
+
         printShit(characterA);
         index += acc;
         if (index > 100 || index < 1) acc *= 1;
-        await ns.sleep(500);
+        for (const line of reg2.lines) {
+
+        }
+
+        await ns.sleep(1500);
+        for (const line of reg2.lines) {
+            if (!line.title)
+                line.text = Math.random();
+        }
+        reg1.lines[1].text = "KLSDkfkgfhjghbnm";
     }
 
-    function makeEdges(c, i = 0) {
+    function textToArray(text, len, color = col.off, edgeColor = col.w, divider, padChar = " ") {
+        let edgeW = edges.v, edgeE = edges.v;
+        if (divider == "div") {
+            edgeW = edges.tw;
+            edgeE = edges.te;
+            color = edgeColor;
+            padChar = edges.t;
+        }
+        if (divider == "top") {
+            edgeW = edges.nw;
+            edgeE = edges.ne;
+            color = edgeColor;
+            padChar = edges.h;
+        }
+        if (divider == "bottom") {
+            edgeW = edges.sw;
+            edgeE = edges.se;
+            color = edgeColor;
+            padChar = edges.h;
+        }
+        text = text ?? padChar;
+
+        const tempText = edgeColor + edgeW +
+            color + text;
+
+        let tempA = [];
+        for (let i = 0; i < tempText.length; i++) {
+            let tempChar = tempText[i];
+            if (tempText[i] == "\x1b") {
+                while (tempText[i] != "m") {
+                    i++;
+                    tempChar += tempText[i];
+                }
+                i++;
+                tempChar += tempText[i];
+            }
+            tempA.push(tempChar);
+        }
+        tempA = tempA.slice(0, len - 1);
+        while (tempA.length < len - 1)
+            tempA.push(padChar);
+        tempA.push(edgeColor + edgeE);
+        return tempA;
+    }
+
+    function makeBackground(c, i = 0) {
         for (let y = 0; y < h; y++) {
             for (let x = 0; x < w; x++) {
                 characterA[y][x] = col.bk + c[prettyThing(x, y, i, chars.length)];
