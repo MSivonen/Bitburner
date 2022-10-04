@@ -17,21 +17,13 @@ import {
 /** @param {import("../.").NS} ns */
 export async function main(ns) {
 
-	let doc = eval("document");
 	ns.tail();
-
-	const tailElement = [...doc.querySelectorAll(".react-draggable")].pop();
-	tailElement.style.left = "1480px";
-	tailElement.style.top = "660px";
-	let tailElement2 = tailElement.firstChild;
-	tailElement2.style.width = "400px"; //default 500px
-	tailElement2.style.height = "400px"; //default 500px
 
 
 	/**Path for dynamic scripts */
 	const path = "/bn4/dynScripts/",
 		logPort = ns.getPortHandle(1),
-		wantGang = true,
+		wantGang = false,
 		timeToWaitForAugs = 300 * 1000,
 		augInstallTimer = 60000 * 400, //400min
 		firstRun = ns.getTimeSinceLastAug() == ns.getPlayer().playtimeSinceLastBitnode,
