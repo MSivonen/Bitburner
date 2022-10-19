@@ -1,3 +1,5 @@
+//Created: 28.08.2022 12:34:52
+//Last modified: 19.10.2022 19:21:20
 import {
     printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,
     secondsToHMS, killAllButThis, connecter, randomInt, map, col, readFromJSON, writeToJSON, openPorts2, getBestFaction
@@ -136,7 +138,7 @@ export async function main(ns) {
             if (augs.length < 4) augs = [];
         }
         if (ns.getBitNodeMultipliers().HackingLevelMultiplier * ns.getPlayer().mults.hacking > 12) {
-            if (augs.includes("nickofolas Congruity Implant"))
+            if (getGrafableAugs(type).includes("nickofolas Congruity Implant"))
                 augs = ["nickofolas Congruity Implant"];
             else
                 return;

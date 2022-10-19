@@ -16,7 +16,10 @@ export async function main(ns) {
         }));
     });
 
-    for (const contr of allContracts) {
+    for (let i = 0; i < allContracts.length; i++) {
+        const contr = allContracts[i];
+        await ns.sleep(10);
+        ns.tprint("Contracts left: " + (allContracts.length - i));
         switch (contr.contractType) {
             case "Merge Overlapping Intervals":
                 mergeOverlappingIntervals(contr.contract, contr.server);

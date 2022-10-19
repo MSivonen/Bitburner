@@ -89,7 +89,14 @@ export async function main(ns) {
             textArea.removeChild(textArea.lastChild);
     });
 
+    let a = 0;
+    let add = 1;
     while (true) {
+        a += add;
+        add += .0001;
+        add **= 1.01;
+        textArea.style = `transform:rotate(${Math.sin(1 - add) * 15 + add}deg)`;
+
         await ns.sleep(20);
         await buttonsLoop();
     }

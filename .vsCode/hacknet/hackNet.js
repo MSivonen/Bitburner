@@ -1,17 +1,10 @@
-import { readFromJSON } from '/lib/includes'
-import { printArray } from '/lib/includes.js'
-import { openPorts } from '/lib/includes.js'
-import { objectArraySort } from '/lib/includes.js'
-import { getServers } from '/lib/includes.js'
-import { getServersWithRam } from '/lib/includes.js'
-import { getServersWithMoney } from '/lib/includes.js'
-//import { secondsToHMS } from '/lib/includes.js'
-//import { killAllButThis } from '/lib/includes.js'
-//import { connecter } from '/lib/includes.js'
-import { randomInt } from '/lib/includes.js'
-import { map } from '/lib/includes.js'
-//import { readFromJSON } from '/lib/includes.js'
-//import { writeToJSON } from '/lib/includes.js'
+//Created: 23.05.2022 18:20:14
+//Last modified: 19.10.2022 19:20:17
+import {
+    printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,
+    secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, openPorts2, getBestFaction, col
+}
+    from '/lib/includes.js'
 
 /** @param {NS} ns */
 /** @param {import('../.').NS} ns */
@@ -22,7 +15,8 @@ export async function main(ns) {
         maxCostOfUpgrade = 6e7,
         alwaysBuy = false, //false = wait a minute then buy for a minute
         corp = false,
-        blade = false;
+        blade = false,
+        gym = false;
 
     if (ns.args[0] == "menu") {
         moneyToSpend = Number(await ns.prompt("Money % to spend on an upgrade, 0...1", { type: "text" }));
@@ -30,6 +24,7 @@ export async function main(ns) {
         alwaysBuy = await ns.prompt("Constantly buy shit?", { type: "boolean" });
         corp = await ns.prompt("Use hashes for corp?", { type: "boolean" });
         blade = await ns.prompt("Use hashes for bladeburner?", { type: "boolean" });
+        gym = await ns.prompt("Use hashes for gym?", { type: "boolean" });
     }
 
 
@@ -42,6 +37,7 @@ export async function main(ns) {
 
         update() {
             const upgrade = this.bestUpgrade();
+            if (upgrade == undefined) return;
             if (upgrade[1] < maxCostOfUpgrade)
                 if (ns.getServerMoneyAvailable("home") * moneyToSpend > upgrade[1])
                     ns.hacknet[upgrade[0]](this.index);
@@ -74,8 +70,8 @@ export async function main(ns) {
                 }
                 //if (this.index == 4) ns.tprint("profit: " + profit / 1e6 + " best: " + best / 1e6 + " besti: " + besti);
             }
-            // ns.tprint(best + " " + besti + " " + this.index);
-
+            //ns.tprint(best + " " + besti + " " + this.index);
+            if (best == Infinity) return;
             //return string+cost
             return [["upgradeLevel", "upgradeRam", "upgradeCore"][besti], ns.hacknet[statNames[besti]](this.index)];
         }
@@ -99,6 +95,9 @@ export async function main(ns) {
         if (blade) {
             ns.hacknet.spendHashes("Exchange for Bladeburner SP");
             ns.hacknet.spendHashes("Exchange for Bladeburner Rank");
+        }
+        if (gym) {
+            ns.hacknet.spendHashes("Improve Gym Training");
         }
         //        if ((ns.singularity.getOwnedAugmentations(true).length + 2 < ns.singularity.getOwnedAugmentations(false).length ||
         //            ns.getTimeSinceLastAug() > 1000 * 60 * 60 * 12) &&
@@ -128,7 +127,8 @@ export async function main(ns) {
             }
         }
 
-        spend();
+        for (let i = 0; i < 100; i++)
+            spend();
 
         ns.clearLog();
         for (let i = 0; i < hackNetServersCA.length; i++) {
@@ -137,6 +137,6 @@ export async function main(ns) {
                 " ram: " + ns.hacknet.getNodeStats(i).ram);
         }
 
-        await ns.sleep(50);
+        await ns.sleep(5);
     }
 }

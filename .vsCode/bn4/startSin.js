@@ -1,3 +1,5 @@
+//Created: 09.05.2022 07:33:46
+//Last modified: 19.10.2022 19:21:44
 import {
 	printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,
 	secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, openPorts2, getBestFaction, col
@@ -27,8 +29,8 @@ export async function main(ns) {
 		timeToWaitForAugs = 300 * 1000,
 		augInstallTimer = 60000 * 400, //400min
 		firstRun = ns.getTimeSinceLastAug() == ns.getPlayer().playtimeSinceLastBitnode,
-		wantAugNum = 10,
-		nextBN = 12,
+		wantAugNum = 6,
+		nextBN = 1,
 		contractDelay = 60 * 21 * 1000;
 
 	if (ns.getServer().hostname != "home")
@@ -80,10 +82,16 @@ export async function main(ns) {
 	];
 	let activityText = [];
 
+
+
 	const dynFunctions = [
 		`//endBN
-		const nextBN = ns.args[0] ?? 12;
-		ns.singularity.destroyW0r1dD43m0n(nextBN, "/bn4/starter.js");`,
+		const nextBN = ns.args[0] ?? 1;
+		if (ns.getServerRequiredHackingLevel("w0r1d_d43m0n") < ns.getPlayer().skills.hacking) {
+			ns.write("lastBNtime.txt", ns.nFormat(ns.getPlayer().playtimeSinceLastBitnode / 1000, "00:00:00"));
+			ns.singularity.destroyW0r1dD43m0n(nextBN, "/bn4/starter.js");
+		}
+		`,
 		`//backdoors
 		const nextBN=ns.args[0];
 		const gangServers = ["CSEC",
@@ -222,7 +230,7 @@ export async function main(ns) {
 			await copyProgs();
 			runFunc("joinFactions");
 			runFunc("backdoors");
-			runFunc("endBN", nextBN);
+			//runFunc("endBN", nextBN);
 			prevTime = ns.getTimeSinceLastAug();
 		}
 		await idle();

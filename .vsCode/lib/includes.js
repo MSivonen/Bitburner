@@ -1,3 +1,6 @@
+//Created: 09.05.2022 07:33:47
+//Last modified: 19.10.2022 19:21:01
+
 /*import {
 	printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,
 	secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, openPorts2, getBestFaction, col

@@ -19,6 +19,8 @@
 		"scope": "javascript,typescript",
 		"prefix": "newfile",
 		"body": [
+			"//Created: ",
+			"//Last modified: ",
 			"import {",
 			"printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,",
 			"secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, openPorts2, getBestFaction, col",

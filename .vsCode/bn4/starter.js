@@ -1,3 +1,5 @@
+//Created: 28.08.2022 12:36:36
+//Last modified: 19.10.2022 19:21:52
 import {
     printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,
     secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, col, openPorts2, getBestFaction
@@ -42,7 +44,7 @@ export async function main(ns) {
             if (ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv) >= ns.getScriptRam(file)) {
                 if (args) returnVal = ns.exec(file, serv, 1, ...args); //return pid
                 else returnVal = ns.exec(file, serv, 1);
-                ns.tprint(file, serv, returnVal)
+                //ns.tprint(file, serv, returnVal)
                 break;
             }
         }
@@ -77,7 +79,7 @@ export async function main(ns) {
             if (this.pid) this.done = true;
         }
 
-        async run() {
+        async execute() {
             //ns.tprint("trying to run " + this.file);
             this.pid = await runSomewhere(this.file, this.args);
             if (this.pid) {
@@ -91,7 +93,7 @@ export async function main(ns) {
         }
 
         async update() {
-            if (!this.pid && !this.done) await this.run();
+            if (!this.pid && !this.done) await this.execute();
             if (this.killAfter || this.waitFor) {
                 this.timeLeft = Math.floor((this.timer - performance.now()) / 1000);
             }
@@ -155,15 +157,15 @@ export async function main(ns) {
         { name: "Buy programs", file: "/lib/buyPrograms.js", killAfter: 250, args: [true] },
         { name: "Log", file: "/watcher/watcher.js" },
         { name: "Open ports", file: "/lib/openPorts.js", killAfter: 250, args: [true] },
-        { name: "Spam JoesGuns", file: "/lib/spamJoesGuns.js", killAfter: 120, args: ["n00dles"], pauseQueue: true },
-        { name: "Stanek charge", file: "/stanek/stanek.js", waitFor: 120, args: [110] },
+        { name: "Spam JoesGuns", file: "/lib/spamJoesGuns.js", killAfter: 12, args: ["n00dles"], pauseQueue: true },
+        { name: "Stanek charge", file: "/stanek/stanek.js", waitFor: 12, args: [11] },
         { name: "Commander", file: "/bn4/commando.js" }, //get to the choppa!
         { name: "Batcher", file: "/ver6/ver6.js" },
         { name: "Homicide", file: "/bn4/spamHomicide.js", pauseQueue: true },
         { name: "Old commander", file: "/bn4/startSin.js" },
         { name: "hackNet", file: "/hacknet/hackNet.js" },
         { name: "Start gang", file: "/gang/thugGang.js" },
-        { name: "Stocks", file: "/stock/stockXsinx.js" },
+        //{ name: "Stocks", file: "/stock/stockXsinx.js" },
         { name: "Sleeves", file: "/bn4/sleeves.js" }
     ];
 

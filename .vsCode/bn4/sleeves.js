@@ -1,3 +1,5 @@
+//Created: 31.05.2022 06:39:11
+//Last modified: 19.10.2022 19:21:29
 import {
     printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,
     secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, openPorts2, getBestFaction, col
@@ -114,7 +116,7 @@ export async function main(ns) {
                 ];
 
                 let gotJob = false;
-                if (g_sets.wantJobs) {
+                if (g_sets.wantJobs && !firstRun) {
                     for (const corpO of jobCorps) { //don't work for company, if already in their fucktion
                         if (ns.getPlayer().factions.includes(Object.values(corpO)[0])) {
                             jobsTaken.push(Object.keys(corpO)[0]);

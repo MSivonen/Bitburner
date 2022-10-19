@@ -1,3 +1,6 @@
+//Created: 09/05/2022 07:33:47
+//Last modified: 19/10/2022 19:15:50
+
 import {
     printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,
     secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, openPorts2, getBestFaction, col
@@ -5,13 +8,50 @@ import {
     from '/lib/includes.js'
 
 
-
-
 /** @param {NS} ns */
 /** @param {import('../.').NS} ns */
 export async function main(ns) {
 
-    ns.tprint(ns.hackAnalyzeChance("n00dles"));
+    const ww = 600, hh = 400;
+    let doc = eval("document");
+    ns.tail();
+    await ns.sleep(50);
+    ns.resizeTail(ww, hh);
+    let logArea = [...doc.querySelectorAll(".react-draggable .react-resizable")].pop();
+    logArea.children[1].style.display = "none";
+    let canvas = logArea.appendChild(doc.createElement("canvas")),
+        ctx = canvas.getContext("2d");
+    canvas.width = ww;
+    canvas.height = hh;
+    // logArea.style.position = "relative";
+    let titleH = logArea.children[0].clientHeight;
+    canvas.style.height = `calc(100% - ${titleH + 4}px)`;
+    canvas.style.width = "calc(100% - 1px)";
+    canvas.style.marginLeft = "1px";
+    canvas.style.marginTop = "1px";
+    //   canvas.style.width = "calc(100% - 1px)";
+    //logArea.style = "height:100%;width:100%;backdrop-filter: blur(10px);";
+    logArea.style.backdropFilter = "blur(10px)";
+
+    let minimized = false;
+    [...doc.querySelectorAll(".react-draggable")].pop().querySelectorAll("button")[1].addEventListener("click", () => { //minimize button
+        minimized = !minimized;
+        minimized ? canvas.style.display = "none" : canvas.style.display = "";
+        /*if (minimized) { canvas.style.height = "30px"; canvas.style.width = w + "px" }
+        else { canvas.style.width = "100%"; canvas.style.height = "100%"; }*/
+    });
+
+    ns.tprint(logArea.children[0].clientHeight);
+
+    ns.atExit(() => {
+        logArea.style = "";
+        logArea.removeChild(canvas);
+    });
+
+    ctx.fillStyle = "rgba(255,0,0,0.4)";
+    ctx.fillRect(0, 0, ww, hh);
+
+    await ns.prompt("end")
 
     return
     ns.disableLog("ALL");

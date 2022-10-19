@@ -13,7 +13,7 @@ export async function main(ns) {
 		area = doc.getElementById("terminal").parentNode;
 		area.classList.add("canvasBG");
 		area.insertAdjacentHTML("afterBegin", `<style>.canvasBG{background:transparent;position:relative}.canvasBG canvas{background:red;position:absolute;height:100%;width:100%;z-index:0}</style>`)
-		area.insertAdjacentHTML("afterBegin", "<canvas height=500 width=800></canvas>");
+		area.insertAdjacentHTML("afterBegin", "<canvas height=1000 width=1400></canvas>");
 		canvas = area.querySelector("canvas");
 		drawing = canvas.getContext("2d")
 
@@ -25,6 +25,7 @@ export async function main(ns) {
 
 		canvas.width = win.innerWidth;
 		canvas.height = win.innerHeight;
+		ns.tprint(canvas.height)
 	}
 
 	if (!area.classList.contains("canvasBG")) addCanvas();
@@ -34,7 +35,7 @@ export async function main(ns) {
 		height = canvas.height / 2,
 		amount = 500, //number of stars
 		speed = 0.01,
-		sizeMult = 1, //multiplier for star size
+		sizeMult = 3, //multiplier for star size
 		starColor = "rgba(120, 255, 0, 1)";
 
 	class Spot {

@@ -1,3 +1,6 @@
+//Created: 09.05.2022 07:33:46
+//Last modified: 19.10.2022 19:20:44
+
 import {
 	printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,
 	secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, openPorts2, getBestFaction
@@ -17,7 +20,7 @@ export async function main(ns) {
 		maxTargets = 15, //oli 15
 		ramNeededForMoreTargets = 15000,
 		batchInterval = 80,
-		shareServers = ns.gang.inGang() ? 7 : 0,
+		shareServers = 0,//ns.gang.inGang() ? 7 : 0,
 		useHashes = ns.args[0] ?? true,
 		useHacknetServersForBatching = true;
 
