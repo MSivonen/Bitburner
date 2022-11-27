@@ -1,5 +1,5 @@
 //Created: 09.05.2022 07:33:46
-//Last modified: 19.10.2022 19:21:44
+//Last modified: 21.10.2022 10:21:36
 import {
 	printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,
 	secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, openPorts2, getBestFaction, col
@@ -33,7 +33,7 @@ export async function main(ns) {
 		nextBN = 1,
 		contractDelay = 60 * 21 * 1000;
 
-	if (ns.getServer().hostname != "home")
+		if (ns.getServer().hostname != "home")
 		await ns.scp("g_settings.txt", ns.getServer().hostname, "home");
 
 	let g_sets = readFromJSON(ns, "g_settings.txt"),

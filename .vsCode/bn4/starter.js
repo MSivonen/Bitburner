@@ -31,25 +31,22 @@ export async function main(ns) {
         else return;
     }
 
-    async function runSomewhere(file, args) {
+    async function runSomewhere(file, args, atHome) {
         await ns.sleep();
         await copyFiles();
         let returnVal;
         let servers = getServers(ns);
-        servers.sort((a, b) => (ns.getServerMaxRam(a) - ns.getServerUsedRam(a)) - (ns.getServerMaxRam(b) - ns.getServerUsedRam(b)));
-        //printArray(ns,servers)
-
+        servers.sort((a, b) => (ns.getServerMaxRam(a) - ns.getServerUsedRam(a)) - (ns.getServerMaxRam(b) - ns.getServerUsedRam(b))); //smallest first
+        if (atHome) servers = ["home"];
         for (const serv of servers) {
             if (!ns.hasRootAccess(serv)) continue;
             if (ns.getServerMaxRam(serv) - ns.getServerUsedRam(serv) >= ns.getScriptRam(file)) {
                 if (args) returnVal = ns.exec(file, serv, 1, ...args); //return pid
                 else returnVal = ns.exec(file, serv, 1);
-                //ns.tprint(file, serv, returnVal)
                 break;
             }
         }
-        if (returnVal == 0) returnVal = undefined;
-        return returnVal;
+        return (returnVal == 0) ? returnVal : undefined;
     }
 
     async function copyFiles() {
@@ -74,6 +71,7 @@ export async function main(ns) {
             this.waitFor = o.waitFor;
             this.queuePaused = true;
             this.timeLeft = undefined;
+            this.runAtHome;
 
             if (this.waitFor) this.pauseQueue = true;
             if (this.pid) this.done = true;
@@ -81,7 +79,7 @@ export async function main(ns) {
 
         async execute() {
             //ns.tprint("trying to run " + this.file);
-            this.pid = await runSomewhere(this.file, this.args);
+            this.pid = await runSomewhere(this.file, this.args, this.runAtHome);
             if (this.pid) {
                 //ns.tprint(this.name + " running...");
                 this.running = true;
@@ -153,19 +151,40 @@ export async function main(ns) {
         //printArray(ns, queue, "tail");
     }
 
+    /*   let spawnQueue = [ //args is a array!!!
+           { name: "Buy programs", file: "/lib/buyPrograms.js", killAfter: 250, args: [true] },
+           { name: "Log", file: "/watcher/watcher.js" },
+           { name: "Open ports", file: "/lib/openPorts.js", killAfter: 250, args: [true] },
+           { name: "Spam JoesGuns", file: "/lib/spamJoesGuns.js", killAfter: 12, args: ["n00dles"], pauseQueue: true },
+           { name: "Stanek charge", file: "/stanek/stanek.js", waitFor: 12, args: [11] },
+           { name: "Commander", file: "/bn4/commando.js" }, //get to the choppa!
+           { name: "Batcher", file: "/ver6/ver6.js" },
+           { name: "Homicide", file: "/bn4/spamHomicide.js", pauseQueue: true },
+           { name: "Old commander", file: "/bn4/startSin.js" },
+           { name: "hackNet", file: "/hacknet/hackNet.js" },
+           { name: "Start gang", file: "/gang/thugGang.js" },
+           //{ name: "Stocks", file: "/stock/stockXsinx.js" },
+           { name: "Sleeves", file: "/bn4/sleeves.js" }
+       ];*/
+
     let spawnQueue = [ //args is a array!!!
-        { name: "Buy programs", file: "/lib/buyPrograms.js", killAfter: 250, args: [true] },
-        { name: "Log", file: "/watcher/watcher.js" },
-        { name: "Open ports", file: "/lib/openPorts.js", killAfter: 250, args: [true] },
-        { name: "Spam JoesGuns", file: "/lib/spamJoesGuns.js", killAfter: 12, args: ["n00dles"], pauseQueue: true },
-        { name: "Stanek charge", file: "/stanek/stanek.js", waitFor: 12, args: [11] },
-        { name: "Commander", file: "/bn4/commando.js" }, //get to the choppa!
+        // { name: "Start logger", file: "/graph/logStats.js", runAtHome: true },
+        { name: "Buy programs", file: "/lib/buyPrograms.js" },
+        { name: "Open ports", file: "/lib/openPorts.js" },
+        { name: "Load stanek hacknet", file: "/stanek/load.js", args: ["hacknet"] },
+        { name: "Stanek charge", file: "/stanek/stanek.js", waitFor: 120, killAfter: 120, args: [120] },
+        { name: "hackNet spend hashes for money", file: "/hacknet/hacknetstart.js" },
+        { name: "hackNet", file: "/hacknet/hackNet.js", killAfter: 600, args: [true, 1] },
+        { name: "Spam JoesGuns", file: "/lib/spamJoesGuns.js", killAfter: 600, args: ["n00dles"], pauseQueue: true },
+        { name: "Wait for 256 ram", file: "pause.js", pauseQueue: true },
+
+        { name: "Load stanek hacking", file: "/stanek/load.js", args: ["hacking"] },
+        { name: "Stanek charge", file: "/stanek/stanek.js", waitFor: 120, args: [11] },
         { name: "Batcher", file: "/ver6/ver6.js" },
-        { name: "Homicide", file: "/bn4/spamHomicide.js", pauseQueue: true },
-        { name: "Old commander", file: "/bn4/startSin.js" },
         { name: "hackNet", file: "/hacknet/hackNet.js" },
-        { name: "Start gang", file: "/gang/thugGang.js" },
-        //{ name: "Stocks", file: "/stock/stockXsinx.js" },
+        { name: "Log", file: "/watcher/watcher.js" },
+        { name: "Commander", file: "/bn4/commando.js" }, //get to the choppa!
+        { name: "Old commander", file: "/bn4/startSin.js" },
         { name: "Sleeves", file: "/bn4/sleeves.js" }
     ];
 

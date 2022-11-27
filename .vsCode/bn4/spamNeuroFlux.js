@@ -17,7 +17,7 @@ export async function main(ns) {
         await ns.sleep(ns.bladeburner.getActionTime("General", "Incite Violence"));
         let augCost;
         let count = 0;
-        for (let i = 0; i < 20; i++) {
+        for (let i = 0; i < 2000; i++) {
             while (1234) {
                 augCost = ns.singularity.getAugmentationPrice("NeuroFlux Governor");
                 if (ns.getServerMoneyAvailable("home") > augCost * 1.2) {

@@ -11,9 +11,9 @@ import {
 export async function main(ns) {
     ns.disableLog("ALL");
 
-    let moneyToSpend = 0.4,//% of money
+    let moneyToSpend = ns.args[1] ?? 0.4,//% of money
         maxCostOfUpgrade = 6e7,
-        alwaysBuy = false, //false = wait a minute then buy for a minute
+        alwaysBuy = ns.args[0] ?? false, //false = wait a minute then buy for a minute
         corp = false,
         blade = false,
         gym = false;

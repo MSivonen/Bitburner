@@ -171,8 +171,8 @@ export function readFromJSON(ns, filename = "/test/jsontest.txt") {
 }
 
 /** @param {import('../.').NS} ns */
-export async function writeToJSON(ns, jsonObject, filename = "/test/jsontest.txt") {
-	await ns.write(filename, JSON.stringify(jsonObject), "w");
+export function writeToJSON(ns, jsonObject, filename = "/test/jsontest.txt") {
+	ns.write(filename, JSON.stringify(jsonObject), "w");
 	ns.scp(filename, "home");
 }
 
@@ -186,7 +186,7 @@ export function map(number, inMin, inMax, outMin, outMax) {
  * @param minVal {number} minimum value 
  * @param maxVal {number} maximum value */
 export function randomInt(minVal = 0, maxVal) {
-	if (typeof maxVal == "undefined") { maxVal = minVal; minVal = 0; }
+	if (!maxVal) { maxVal = minVal; minVal = 0; }
 	return minVal + Math.floor((Math.random()) * (maxVal + .9999 - minVal));
 }
 
@@ -258,8 +258,9 @@ export function openPorts(ns, openPortsServers, files = ["/lib/hack.js", "/lib/w
  * @param thisArray {array} array name
  * @param value {string} object's value to sort by
  * @param big {"big"|"small"} biggest or smallest first
+ * @example objectArraySort(serversObjectArray, "freeRam", "big|small");
  */
-export function objectArraySort(ns, thisArray, value, big) { //objectArraySort(serversObjectArray, "freeRam", "big|small");
+export function objectArraySort(ns, thisArray, value, big) { 
 	if (big == "big") thisArray.sort((c1, c2) => (c1[value] < c2[value]) ? 1 : (c1[value] > c2[value]) ? -1 : 0);//biggest first
 	if (big == "small") thisArray.sort((c1, c2) => (c1[value] > c2[value]) ? 1 : (c1[value] < c2[value]) ? -1 : 0);//smallest first
 }
@@ -275,15 +276,8 @@ export const getServers = (ns, a = new Set(["home"])) => {
 };
 
 /**@param {NS} ns @return {array} Array with server names that have more than 3GB of ram */
-export function getServersWithRam(ns, ram = 3, targetArray = []) {
-	let servers = getServers(ns);
-	for (let i = 0; i < servers.length; i++) {
-		if (ns.getServerMaxRam(servers[i]) >= ram) {
-			targetArray.push(servers[i]);
-		}
-	}
-	return targetArray;
-}
+export const getServersWithRam = (ns, ram = 3) => getServers(ns).filter(a => ns.getServerMaxRam(a) >= ram);
+
 
 /** @param {NS} ns @return {array} Array with server names that have money*/
 export function getServersWithMoney(ns, targetArray = []) {

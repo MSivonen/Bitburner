@@ -45,5 +45,25 @@
 			"}]));",
 		],
 		"description": "Make objects"
+	},
+	"fori": {
+		"scope": "javascript,typescript",
+		"prefix": "fori",
+		"body": [
+			"for(let i = 0; i < NUMBER; i++){",
+			"",
+			"}"
+		],
+		"description": "For i < number"
+	},
+	"forlen": {
+		"scope": "javascript,typescript",
+		"prefix": "forlen",
+		"body": [
+			"for(let i = 0; i < ARRAY.length; i++){",
+			"",
+			"}"
+		],
+		"description": "For i < number"
 	}
 }

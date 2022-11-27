@@ -37,7 +37,8 @@ export async function main(ns) {
 
     ns.singularity.commitCrime("Homicide");
 
-    ns.run("/blade/bbSleeves.js");
+    for (let i = 0; i < ns.sleeve.getNumSleeves(); i++)
+        ns.sleeve.setToBladeburnerAction(i, "Infiltrate synthoids");
 
     function updateLog() {
         ns.clearLog();
@@ -67,15 +68,11 @@ export async function main(ns) {
         updateLog();
 
         if (ns.bladeburner.getSkillUpgradeCost("Hyperdrive") < ns.bladeburner.getSkillPoints()) {
-            let bought = 0;
-            for (let i = 2 ** 100; i >= 1; i /= 2) {
+            for (let i = 2 ** 20; i >= 1; i /= 2) {
                 const count = Math.floor(i);
-                if (ns.bladeburner.upgradeSkill("Hyperdrive", count)) {
+                if (ns.bladeburner.upgradeSkill("Hyperdrive", count))
                     logO.Hyperdrive += i;
-                    bought += i;
-                }
             }
-            if (bought > 0) ns.tprint("Bought " + bought + " hyperdrives.");
         }
 
         if (ns.getPlayer().hp.current < ns.getPlayer().hp.max / 10)
@@ -111,8 +108,8 @@ export async function main(ns) {
         }
 
         if (!jobbing) {
-            ns.bladeburner.startAction("General", "Incite Violence");
-            await ns.sleep(ns.bladeburner.getActionTime("General", "Incite Violence"));
+            await ns.prompt("reset (ok) or (kill this script) nope?");
+            ns.singularity.softReset("blade/spamResetInt.js");
         }
 
         await ns.sleep(10);

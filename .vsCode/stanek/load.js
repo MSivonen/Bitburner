@@ -10,22 +10,27 @@ export async function main(ns) {
     let file;
     const path = "/stanek/" + ns.stanek.giftWidth() + "x" + ns.stanek.giftHeight() + "/";
 
+    ns.stanek.acceptGift();
+
     if (ns.args.length == 0) {
         file = await ns.prompt("Select file to load", {
             type: "select",
             choices: ns.ls("home", path).filter((f) => f.includes(".txt"))
         });
     } else file = path + ns.args[0] + ".txt";
+
+    ns.scp(file, ns.getServer().hostname, "home");
+
     if (!ns.fileExists(file)) {
-        ns.tprint("File " + file + " not found");
+        ns.tprint(col.r + "File " + file + " not found");
         return;
     }
 
-    let tetris = readFromJSON(ns, (file));
+    const tetris = readFromJSON(ns, (file));
 
     ns.stanek.clearGift();
     for (const p of tetris) {
         ns.stanek.placeFragment(p.x, p.y, p.rotation, p.id)
     }
-    ns.tprint("Stanek tetris " + file + " assembled.")
+    ns.tprint(col.c + "Stanek tetris " + file + " assembled.")
 }

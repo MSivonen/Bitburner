@@ -220,7 +220,7 @@ export async function main(ns) {
 				minSec = ns.getServerMinSecurityLevel(targ),
 				growThreads = Math.ceil(ns.growthAnalyze(targ, Math.max(10000, (maxMoney / currentMoney) * 1.2))),
 				secu = ns.getServerSecurityLevel(targ) + ns.growthAnalyzeSecurity(growThreads, targ, 1),
-				weakThreads = Math.ceil((secu - minSec) / ns.weakenAnalyze(1));
+				weakThreads = Math.ceil((secu - minSec) / ns.weakenAnalyze(1) * 1.15);
 
 			if (!growThreads && !weakThreads) {
 				logA.push("WARN Server " + targ + " already güüd.");

@@ -1,5 +1,5 @@
 //Created: 09/05/2022 07:33:47
-//Last modified: 19/10/2022 19:15:50
+//Last modified: 21.10.2022 12:27:42
 
 import {
     printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,
@@ -11,47 +11,47 @@ import {
 /** @param {NS} ns */
 /** @param {import('../.').NS} ns */
 export async function main(ns) {
+    const allFactions = {
 
-    const ww = 600, hh = 400;
-    let doc = eval("document");
-    ns.tail();
-    await ns.sleep(50);
-    ns.resizeTail(ww, hh);
-    let logArea = [...doc.querySelectorAll(".react-draggable .react-resizable")].pop();
-    logArea.children[1].style.display = "none";
-    let canvas = logArea.appendChild(doc.createElement("canvas")),
-        ctx = canvas.getContext("2d");
-    canvas.width = ww;
-    canvas.height = hh;
-    // logArea.style.position = "relative";
-    let titleH = logArea.children[0].clientHeight;
-    canvas.style.height = `calc(100% - ${titleH + 4}px)`;
-    canvas.style.width = "calc(100% - 1px)";
-    canvas.style.marginLeft = "1px";
-    canvas.style.marginTop = "1px";
-    //   canvas.style.width = "calc(100% - 1px)";
-    //logArea.style = "height:100%;width:100%;backdrop-filter: blur(10px);";
-    logArea.style.backdropFilter = "blur(10px)";
+        'CyberSec': {
+            'type': 'Early Game Faction',
+            'requirements': 'Install a backdoor on the CSEC server',
+            'augmentations': 'NeuroFlux Governor, Neurotrainer I, Synaptic Enhancement Implant, BitWire, Cranial Signal Processors - Gen I, Cranial Signal Processors - Gen II',
+            'work': 'Hacking Contracts',
+            'description': 'The Internet is the first thing that was built that we don\'t fully understand, the largest experiment in anarchy that we have ever had. And as the world becomes increasingly dominated by it, society approaches the brink of total chaos. We serve only to protect society, to protect humanity, to protect the world from imminent collapse.',
+            'checklistID': 'faction-1'
+        }
+        ,
 
-    let minimized = false;
-    [...doc.querySelectorAll(".react-draggable")].pop().querySelectorAll("button")[1].addEventListener("click", () => { //minimize button
-        minimized = !minimized;
-        minimized ? canvas.style.display = "none" : canvas.style.display = "";
-        /*if (minimized) { canvas.style.height = "30px"; canvas.style.width = w + "px" }
-        else { canvas.style.width = "100%"; canvas.style.height = "100%"; }*/
-    });
+        'Netburners': {
+            'type': 'Early Game Faction',
+            'requirements': 'Hacking Level 80, Total Hacknet Levels of 100, Total Hacknet RAM of 8, Total Hacknet Cores of 4',
+            'augmentations': 'NeuroFlux Governor, Hacknet Node NIC Architecture Neural-Upload, Hacknet Node Cache Architecture Neural-Upload, Hacknet Node CPU Architecture Neural-Upload, Hacknet Node Kernel Direct-Neural Interface, Hacknet Node Core Direct-Neural Interface',
+            'work': 'Hacking Contracts',
+            'description': '~~//*>H4CK||3T 8URN3R5**>?>\~~',
+            'checklistID': 'faction-2'
+        }
+    };
 
-    ns.tprint(logArea.children[0].clientHeight);
+    ns.tprint(findShit("Early"))
+    ns.tprint("-")
+    ns.tprint(findShit("NeurotrAiner"))
+    ns.tprint("-")
+    let shit = findShit("NeuroFlux")
+    shit.forEach(e => ns.tprint(e[0]))
 
-    ns.atExit(() => {
-        logArea.style = "";
-        logArea.removeChild(canvas);
-    });
+    function findShit(value, factions = allFactions) {
+        value = value.toLowerCase();
+        let toReturn = [];
+        for (const fact of Object.keys(factions)) {
+            Object.keys(factions[fact]).forEach(key => {
+                if (factions[fact][key].toLowerCase().includes(value))
+                    toReturn.push([fact, key]);
+            });
+        }
+        return toReturn;
+    }
 
-    ctx.fillStyle = "rgba(255,0,0,0.4)";
-    ctx.fillRect(0, 0, ww, hh);
-
-    await ns.prompt("end")
 
     return
     ns.disableLog("ALL");

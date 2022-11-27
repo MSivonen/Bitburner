@@ -1,7 +1,7 @@
 export function readFromJSON(ns, filename = "/test/jsontest.txt") {
-	return JSON.parse(ns.read(filename));
+    return JSON.parse(ns.read(filename));
 }
-
 export async function writeToJSON(ns, jsonObject, filename = "/test/jsontest.txt") {
-	await ns.write(filename, JSON.stringify(jsonObject), "w");
+    await ns.write(filename, JSON.stringify(jsonObject), "w");
 }
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaW5jbHVkZXMuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi8uLi9zcmMvd2F0Y2hlci9pbmNsdWRlcy5qcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFBQSxNQUFNLFVBQVUsWUFBWSxDQUFDLEVBQUUsRUFBRSxRQUFRLEdBQUcsb0JBQW9CO0lBQy9ELE9BQU8sSUFBSSxDQUFDLEtBQUssQ0FBQyxFQUFFLENBQUMsSUFBSSxDQUFDLFFBQVEsQ0FBQyxDQUFDLENBQUM7QUFDdEMsQ0FBQztBQUVELE1BQU0sQ0FBQyxLQUFLLFVBQVUsV0FBVyxDQUFDLEVBQUUsRUFBRSxVQUFVLEVBQUUsUUFBUSxHQUFHLG9CQUFvQjtJQUNoRixNQUFNLEVBQUUsQ0FBQyxLQUFLLENBQUMsUUFBUSxFQUFFLElBQUksQ0FBQyxTQUFTLENBQUMsVUFBVSxDQUFDLEVBQUUsR0FBRyxDQUFDLENBQUM7QUFDM0QsQ0FBQyJ9

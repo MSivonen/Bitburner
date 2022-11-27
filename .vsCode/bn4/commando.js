@@ -39,7 +39,7 @@ export async function main(ns) {
     ]
 
 
-    await copyFiles();
+    copyFiles();
 
     while (true != !true) {
         if (numAugsBought() < augsToInstall - 5)
@@ -57,7 +57,7 @@ export async function main(ns) {
         //buyHomeCores();
         //donate();
         graftAug();
-        await buyServers();
+        buyServers();
     }
 
     function updateTail() {
@@ -70,12 +70,11 @@ export async function main(ns) {
         ns.print(col.c + "Donating to: " + col.w + tailObject.donating);
         ns.print(col.c + "Grafting aug: " + col.w + tailObject.grafting);
         ns.print(col.c + "All graftable augs: \n" + col.w + tailObject.graftables);
-
     }
 
     async function runSomewhere(file, args) {
         await ns.sleep();
-        await copyFiles();
+        copyFiles();
         let returnVal;
         let servers = getServers(ns);
         servers.sort((a, b) => (ns.getServerMaxRam(a) - ns.getServerUsedRam(a)) - (ns.getServerMaxRam(b) - ns.getServerUsedRam(b)));
@@ -194,60 +193,39 @@ export async function main(ns) {
         return augs;
     }
 
-    async function copyFiles() {
+    function copyFiles() {
         for (const serv of getServers(ns)) {
-            await ns.scp(Object.values(allFiles), serv, "home");
+            ns.scp(Object.values(allFiles), serv, "home");
         }
     }
 
-    async function buyServers(maxRam = ns.getPurchasedServerMaxRam()) {
-        const maxServers = ns.getPurchasedServerLimit();
-        if (maxServers == 0) return;
-        let ram,
-            biggestServer,
-            smallestServer,
-            serversOA = [];
-        let buy = false;
-        let allPservers = ns.getPurchasedServers();
-        if (allPservers.length > 0) {
-            allPservers.forEach(s => { serversOA.push({ name: s, ram: ns.getServerMaxRam(s) }) });
-            biggestServer = serversOA.reduce((prev, current) => (prev.ram > current.ram) ? prev : current);
-            smallestServer = serversOA.reduce((prev, current) => (prev.ram < current.ram) ? prev : current);
-        }
+    function buyServers(maxMoney = 1e12) {
+        if (ns.getPurchasedServerLimit() == 0) return;
 
-        if (biggestServer == undefined) ram = 32; //no pservers
-        else ram = biggestServer.ram;
-
-        while (ram < maxRam && ns.getServerMoneyAvailable("home") > ns.getPurchasedServerCost(ram * 2)) {
-            ram *= 2; //increase ram until happy
-            buy = true;
-            if (ram >= maxRam) {
-                ram = maxRam;
-            }
-        }
-        if (smallestServer != undefined)
-            if (ram == smallestServer.ram) return;
-
-        if (buy) {
-            if (serversOA.length == maxServers) {
-                ns.killall(smallestServer.name);
-                ns.deleteServer(smallestServer.name);
-            }
-            let servNumbers = [];
-            for (const s of serversOA)
-                servNumbers.push(Number(s.name.substring(7)));
-            let servNumber = 0;
-            for (let i = 0; i < maxServers; i++)
-                if (!servNumbers.includes(i)) {
-                    servNumber = i;
+        while (ns.getPurchasedServers().length < ns.getPurchasedServerLimit()) {
+            for (let exp = Math.log2(ns.getPurchasedServerMaxRam()); exp > 4; exp--) {
+                if (ns.getServerMoneyAvailable("home") >= ns.getPurchasedServerCost(2 ** exp)) {
+                    ns.purchaseServer("perkele" + (ns.getPurchasedServers().length), 2 ** exp);
+                    copyFiles();
                     break;
                 }
-            if (ns.purchaseServer("perkele" + servNumber, ram) != "") {
-                await copyFiles();
-                ns.tprint("Purchased perkele" + servNumber + " with " + ram + "GB of ram.");
             }
-            else ns.tprint(col.r + "Something went wrong purchasing server. Perkele. Money needed: " +
-                ns.nFormat(ns.getPurchasedServerCost(ram), "0.00a"));
+            if (ns.getServerMoneyAvailable("home") < ns.getPurchasedServerCost(2 ** 5)) break;
+        }
+
+        let servers = ns.getPurchasedServers();
+        servers.sort((a, b) => ns.getServerMaxRam(b) - ns.getServerMaxRam(a));
+
+        for (let i = servers.length - 1; i >= 0; i--) {
+            for (let exp = Math.log2(ns.getPurchasedServerMaxRam()); exp > Math.log2(ns.getServerMaxRam(servers[i])); exp--) {
+                if (
+                    ns.getServerMoneyAvailable("home") >= ns.getPurchasedServerUpgradeCost(servers[i], 2 ** exp) &&
+                    ns.getPurchasedServerUpgradeCost(servers[i], 2 ** exp) <= maxMoney
+                ) {
+                    ns.upgradePurchasedServer(servers[i], 2 ** exp);
+                    break;
+                }
+            }
         }
     }
 }

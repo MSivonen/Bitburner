@@ -1,20 +1,13 @@
-import {
-    printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,
-    secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, openPorts2, getBestFaction
-}
-    from '/lib/includes.js'
-
+import { readFromJSON } from '/lib/includes.js';
 /** @param {NS} ns */
 /** @param {import('../.').NS} ns */
 export async function main(ns) {
-    let g_sets = { //variables to be controlled with buttons
+    let g_sets = {
         var1: true,
         var2: true,
         var3: true
     };
     const logPort = ns.getPortHandle(1);
-
-
     ns.tail();
     while (1) {
         ns.clearLog();
@@ -22,9 +15,13 @@ export async function main(ns) {
         ns.print("var1: " + g_sets.var1);
         ns.print("var2: " + g_sets.var2);
         ns.print("var3: " + g_sets.var3);
-        if (g_sets.var1) logPort.write("var1 is on");
-        if (g_sets.var2) logPort.write("var2 is on");
-        if (g_sets.var3) logPort.write("var3 is on");
+        if (g_sets.var1)
+            logPort.write("var1 is on");
+        if (g_sets.var2)
+            logPort.write("var2 is on");
+        if (g_sets.var3)
+            logPort.write("var3 is on");
         await ns.sleep(1000);
     }
 }
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiYnV0dG9uQW5kTG9nVGVzdC5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uLy4uL3NyYy93YXRjaGVyL2J1dHRvbkFuZExvZ1Rlc3QuanMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUEsT0FBTyxFQUVzRCxZQUFZLEVBQ3hFLE1BQ1Esa0JBQWtCLENBQUE7QUFFM0IscUJBQXFCO0FBQ3JCLG9DQUFvQztBQUNwQyxNQUFNLENBQUMsS0FBSyxVQUFVLElBQUksQ0FBQyxFQUFFO0lBQ3pCLElBQUksTUFBTSxHQUFHO1FBQ1QsSUFBSSxFQUFFLElBQUk7UUFDVixJQUFJLEVBQUUsSUFBSTtRQUNWLElBQUksRUFBRSxJQUFJO0tBQ2IsQ0FBQztJQUNGLE1BQU0sT0FBTyxHQUFHLEVBQUUsQ0FBQyxhQUFhLENBQUMsQ0FBQyxDQUFDLENBQUM7SUFHcEMsRUFBRSxDQUFDLElBQUksRUFBRSxDQUFDO0lBQ1YsT0FBTyxDQUFDLEVBQUU7UUFDTixFQUFFLENBQUMsUUFBUSxFQUFFLENBQUM7UUFDZCxNQUFNLEdBQUcsWUFBWSxDQUFDLEVBQUUsRUFBRSxxQkFBcUIsQ0FBQyxDQUFDO1FBQ2pELEVBQUUsQ0FBQyxLQUFLLENBQUMsUUFBUSxHQUFHLE1BQU0sQ0FBQyxJQUFJLENBQUMsQ0FBQztRQUNqQyxFQUFFLENBQUMsS0FBSyxDQUFDLFFBQVEsR0FBRyxNQUFNLENBQUMsSUFBSSxDQUFDLENBQUM7UUFDakMsRUFBRSxDQUFDLEtBQUssQ0FBQyxRQUFRLEdBQUcsTUFBTSxDQUFDLElBQUksQ0FBQyxDQUFDO1FBQ2pDLElBQUksTUFBTSxDQUFDLElBQUk7WUFBRSxPQUFPLENBQUMsS0FBSyxDQUFDLFlBQVksQ0FBQyxDQUFDO1FBQzdDLElBQUksTUFBTSxDQUFDLElBQUk7WUFBRSxPQUFPLENBQUMsS0FBSyxDQUFDLFlBQVksQ0FBQyxDQUFDO1FBQzdDLElBQUksTUFBTSxDQUFDLElBQUk7WUFBRSxPQUFPLENBQUMsS0FBSyxDQUFDLFlBQVksQ0FBQyxDQUFDO1FBQzdDLE1BQU0sRUFBRSxDQUFDLEtBQUssQ0FBQyxJQUFJLENBQUMsQ0FBQztLQUN4QjtBQUNMLENBQUMifQ==

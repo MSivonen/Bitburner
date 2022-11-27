@@ -1,16 +1,13 @@
-import { readFromJSON, writeToJSON }
-    from '/lib/includes.js';
-
+import { readFromJSON, writeToJSON } from '/lib/includes.js';
 /** @param {NS} ns */
 /** @param {import('../.').NS} ns */
 export async function main(ns) {
     ns.disableLog("ALL");
-    let g_sets = { //variables to be controlled with buttons
+    let g_sets = {
         var1: true,
         var2: true,
         var3: true
     };
-
     ns.tail();
     while (1) {
         ns.clearLog();
@@ -18,10 +15,14 @@ export async function main(ns) {
         ns.print("var1: " + g_sets.var1);
         ns.print("var2: " + g_sets.var2);
         ns.print("var3: " + g_sets.var3);
-        if (g_sets.var1) ns.tprint("var1 is on");
-        if (g_sets.var2) ns.tprint("var2 is on");
-        if (g_sets.var3) ns.tprint("The thing is on");
+        if (g_sets.var1)
+            ns.tprint("var1 is on");
+        if (g_sets.var2)
+            ns.tprint("var2 is on");
+        if (g_sets.var3)
+            ns.tprint("The thing is on");
         await writeToJSON(ns, g_sets, "g_settings_test.txt");
         await ns.sleep(1000);
     }
 }
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiYnV0dG9uc1Rlc3QuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi8uLi9zcmMvd2F0Y2hlci9idXR0b25zVGVzdC5qcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFBQSxPQUFPLEVBQUUsWUFBWSxFQUFFLFdBQVcsRUFBRSxNQUMzQixrQkFBa0IsQ0FBQztBQUU1QixxQkFBcUI7QUFDckIsb0NBQW9DO0FBQ3BDLE1BQU0sQ0FBQyxLQUFLLFVBQVUsSUFBSSxDQUFDLEVBQUU7SUFDekIsRUFBRSxDQUFDLFVBQVUsQ0FBQyxLQUFLLENBQUMsQ0FBQztJQUNyQixJQUFJLE1BQU0sR0FBRztRQUNULElBQUksRUFBRSxJQUFJO1FBQ1YsSUFBSSxFQUFFLElBQUk7UUFDVixJQUFJLEVBQUUsSUFBSTtLQUNiLENBQUM7SUFFRixFQUFFLENBQUMsSUFBSSxFQUFFLENBQUM7SUFDVixPQUFPLENBQUMsRUFBRTtRQUNOLEVBQUUsQ0FBQyxRQUFRLEVBQUUsQ0FBQztRQUNkLE1BQU0sR0FBRyxZQUFZLENBQUMsRUFBRSxFQUFFLHFCQUFxQixDQUFDLENBQUM7UUFDakQsRUFBRSxDQUFDLEtBQUssQ0FBQyxRQUFRLEdBQUcsTUFBTSxDQUFDLElBQUksQ0FBQyxDQUFDO1FBQ2pDLEVBQUUsQ0FBQyxLQUFLLENBQUMsUUFBUSxHQUFHLE1BQU0sQ0FBQyxJQUFJLENBQUMsQ0FBQztRQUNqQyxFQUFFLENBQUMsS0FBSyxDQUFDLFFBQVEsR0FBRyxNQUFNLENBQUMsSUFBSSxDQUFDLENBQUM7UUFDakMsSUFBSSxNQUFNLENBQUMsSUFBSTtZQUFFLEVBQUUsQ0FBQyxNQUFNLENBQUMsWUFBWSxDQUFDLENBQUM7UUFDekMsSUFBSSxNQUFNLENBQUMsSUFBSTtZQUFFLEVBQUUsQ0FBQyxNQUFNLENBQUMsWUFBWSxDQUFDLENBQUM7UUFDekMsSUFBSSxNQUFNLENBQUMsSUFBSTtZQUFFLEVBQUUsQ0FBQyxNQUFNLENBQUMsaUJBQWlCLENBQUMsQ0FBQztRQUM5QyxNQUFNLFdBQVcsQ0FBQyxFQUFFLEVBQUUsTUFBTSxFQUFFLHFCQUFxQixDQUFDLENBQUM7UUFDckQsTUFBTSxFQUFFLENBQUMsS0FBSyxDQUFDLElBQUksQ0FBQyxDQUFDO0tBQ3hCO0FBQ0wsQ0FBQyJ9

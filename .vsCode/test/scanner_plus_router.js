@@ -10,12 +10,12 @@ import {
 /** @param {import('../.').NS} ns */
 export async function main(ns) {
 
-    const router = (server) => {
-        let route = [server];
-        while (server != "home") {
-            route.unshift(server = ns.scan(server).shift());
+    const router = (server, route = [server]) => {
+        while (route[0] != "home") {
+            route.unshift(ns.scan(route[0])[0]);
         }
-        return "\n\x1b[34m"+ route.join(";\n\x1b[37m connect \x1b[34m");
+
+        return route;
     }
 
     ns.tprint(router("4sigma"));
