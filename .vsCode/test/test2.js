@@ -7,6 +7,5 @@ import {
 /** @param {NS} ns */
 /** @param {import('../.').NS} ns */
 export async function main(ns) {
-    ns.tprint(eval('ns.hackAnalyzeThreads("foodnstuff",1000)'))
-    //ns.tprint(eval(ns.args[0]));
+ns.wget
 }
