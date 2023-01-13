@@ -54,11 +54,12 @@ export async function main(ns) {
 		explode() {
 			for (let i = 0; i < 100 * this.size; i++) {
 				let angle = Math.random() * 3.1415 * 2;
-				let sss_x = Math.sin(angle) * Math.random();
-				let sss_y = Math.cos(angle) * Math.random();
+				let rand = Math.random()
+				let sss_x = Math.sin(angle) * rand;
+				let sss_y = Math.cos(angle) * rand;
 				sss_x *= map(Math.random(), 0, 1, height / 500, .7 * height / 500) * this.size;
 				sss_y *= map(Math.random(), 0, 1, height / 500, .7 * height / 500) * this.size;
-				this.kipunat.push(new Particle(this.rocket.pos.x, this.rocket.pos.y, sss_x, sss_y, this.col, 0.08));
+				this.kipunat.push(new Particle(this.rocket.pos.x, this.rocket.pos.y, sss_y, sss_x, this.col, 0.08));
 			}
 		}
 	}
@@ -93,7 +94,13 @@ export async function main(ns) {
 			let a = this.lifee * 55;
 			//context.fillStyle = "rgba(" + color[0] + "," + color[1] + "," + color[2] + "," + a + ")";
 			context.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${a} )`;
-			context.fillRect(this.pos.x, this.pos.y, 2 * this.lifee, 2 * this.lifee);
+			//context.fillRect(this.pos.x, this.pos.y, 2 * this.lifee, 2 * this.lifee);
+			context.beginPath();
+			context.arc(this.pos.x, this.pos.y, 2 * this.lifee, 0, 2 * Math.PI, false);
+			context.fill();
+			context.lineWidth = 3;
+			context.strokeStyle = '#00aa0000';
+			context.stroke();
 		}
 
 		update() {
@@ -123,7 +130,7 @@ export async function main(ns) {
 	while (true) {
 		context.fillStyle = "rgba(0, 0, 0, 0.2)";
 		context.fillRect(0, 0, canvas.width, canvas.height);
-		if (Math.random() < .03 * height / 400) {
+		if (Math.random() < .07 * height / 400) {
 			rockets.push(new Raketti(width / 2, height,
 				map(Math.random(), 0, 1, -height / 30, -height / 60),
 				map(Math.random(), 0, 1, -width / 80, width / 80),

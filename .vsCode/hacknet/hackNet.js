@@ -16,7 +16,8 @@ export async function main(ns) {
         alwaysBuy = ns.args[0] ?? false, //false = wait a minute then buy for a minute
         corp = false,
         blade = false,
-        gym = false;
+        gym = false,
+        school = false;
 
     if (ns.args[0] == "menu") {
         moneyToSpend = Number(await ns.prompt("Money % to spend on an upgrade, 0...1", { type: "text" }));
@@ -25,6 +26,7 @@ export async function main(ns) {
         corp = await ns.prompt("Use hashes for corp?", { type: "boolean" });
         blade = await ns.prompt("Use hashes for bladeburner?", { type: "boolean" });
         gym = await ns.prompt("Use hashes for gym?", { type: "boolean" });
+        school = await ns.prompt("Use hashes for school?", { type: "boolean" });
     }
 
 
@@ -99,6 +101,9 @@ export async function main(ns) {
         if (gym) {
             ns.hacknet.spendHashes("Improve Gym Training");
         }
+        if (school) {
+            ns.hacknet.spendHashes("Improve Studying");
+        }
         //        if ((ns.singularity.getOwnedAugmentations(true).length + 2 < ns.singularity.getOwnedAugmentations(false).length ||
         //            ns.getTimeSinceLastAug() > 1000 * 60 * 60 * 12) &&
         //            ns.getTimeSinceLastAug() != ns.getPlayer().playtimeSinceLastBitnode) sellForMoney = true;
@@ -109,7 +114,7 @@ export async function main(ns) {
 
     while (true) {
         if (ns.getServer().hostname != "home")
-            await ns.scp("g_settings.txt", ns.getServer().hostname, "home");
+            ns.scp("g_settings.txt", ns.getServer().hostname, "home");
         let g_sets = readFromJSON(ns, "g_settings.txt");
 
         while (!g_sets.wantHackNet) {

@@ -68,7 +68,7 @@ export async function main(ns) {
 
         if (ns.bladeburner.getSkillUpgradeCost("Hyperdrive") < ns.bladeburner.getSkillPoints()) {
             let bought = 0;
-            for (let i = 2 ** 100; i >= 1; i /= 2) {
+            for (let i = 2 ** 100; i >= 14; i /= 2) {
                 const count = Math.floor(i);
                 if (ns.bladeburner.upgradeSkill("Hyperdrive", count)) {
                     logO.Hyperdrive += i;

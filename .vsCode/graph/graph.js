@@ -8,10 +8,10 @@ import {
 /** @param {import('../.').NS} ns */
 export async function main(ns) {
 	//-------edit these-------
-	const statFile = "intfarmstats.txt",
+	const statFile = "intfarmstats2.txt",
 		font = "Consolas",
 		fontSize = 18,
-		hours = 24 * 24,
+		hours = undefined,// 24,
 		w = 1400, h = 800;
 
 	//Leave scale empty for automatic scale
@@ -103,7 +103,9 @@ export async function main(ns) {
 	function makeEmptyArr(hours) {
 		let arr = readFromJSON(ns, statFile);
 		let emptyArr = [];
-		let endTime = new Date().valueOf();
+		console.log(arr.at(-1).time)
+		let endTime = new Date(arr.at(-1).time).valueOf();
+		console.log(endTime)
 		let startTime = hours ? endTime - (1000 * 60 * 60 * hours) : new Date(arr[0].time).valueOf();
 		for (let i = startTime; i <= endTime; i += 60 * 1000) {
 			emptyArr.push(new Date(Math.floor(i / 60000) * 60000));
@@ -174,6 +176,7 @@ export async function main(ns) {
 		ctx.stroke();
 
 		let offset = scale ? 0 : first;
+		console.log(scale)
 		return [text,
 			`${ns.nFormat(offset, "0.00a")} to ${ns.nFormat(scaleBiggest, "0.00a")}`,
 			logarithmic,
@@ -260,7 +263,7 @@ export async function main(ns) {
 
 		ctxDraw.clearRect(0, 0, w, h);
 		ctxDraw.drawImage(bufferCanvas, 0, 0);
-		while (prevUpdate.getMinutes() == new Date().getMinutes() && new Date().getMinutes() % 10 == 0)
+		while (prevUpdate.getMinutes() == new Date().getMinutes())// && new Date().getMinutes() % 10 == 0)
 			await ns.sleep(1000);
 		prevUpdate = new Date();
 	}

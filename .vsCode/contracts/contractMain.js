@@ -51,6 +51,9 @@ export async function main(ns) {
             case "Sanitize Parentheses in Expression":
                 sanitizeParenthesesInExpression(contr.contract, contr.server);
                 break;
+            case "Generate IP Addresses":
+                generateIpAddresses(contr.contract, contr.server);
+                break;
             default:
                 ns.tprint("\x1b[35mconnecter " + (contr.server).padEnd(20) + "\x1b[33m" + (contr.contractType).padEnd(43) + " \x1b[32mno solver.");
         }
@@ -69,6 +72,52 @@ export async function main(ns) {
         ns.tprint(solved);
         ns.tprint("Reward:");
         //ns.tprint(ns.codingcontract.attempt(solved, contract, server, { returnReward: true }));
+    }
+
+    function generateIpAddresses(contract, server) {
+        const inputArray = ns.codingcontract.getData(contract, server).split("");
+        let solved = [];
+
+        ns.tprint("INFO Solving " + ns.codingcontract.getContractType(contract, server) + " at " + server);
+        ns.tprint("Original string: ");
+        ns.tprint(inputArray.join(""));
+
+        function splitNumbers(longNum = [], ipArray = [], retArr = []) {
+            if (ipArray.length > 4) return;
+            for (let i = 1; i < 4; i++) {
+                const tempDigits = longNum.slice(0, i);
+                splitNumbers(longNum.slice(i), [...ipArray, tempDigits], retArr);
+            }
+            if (ipArray.length < 4 || longNum.length > 0) return;
+
+            let retStr = "";
+            for (const ip of ipArray) {
+                retStr += ip.join("") + ".";
+            }
+
+            retStr = retStr.slice(0, -1);
+            solved.push(retStr);
+        }
+
+        splitNumbers(inputArray);
+
+        for (let i = solved.length - 1; i >= 0; i--) {
+            for (const digits of solved[i].split(".")) {
+                if (Number(digits) > 255 ||
+                    (digits.startsWith("0") && digits.length > 1)
+                ) {
+                    solved.splice(i, 1);
+                    break;
+                }
+            }
+        }
+
+        solved = [...new Set(solved)];
+
+        ns.tprint("Solved array:");
+        ns.tprint(solved);
+        ns.tprint("Reward:");
+        ns.tprint(ns.codingcontract.attempt(solved, contract, server, { returnReward: true }));
     }
 
     function sanitizeParenthesesInExpression(contract, server) { //https://pastebin.com/8Y0Fqwfu
@@ -139,7 +188,7 @@ export async function main(ns) {
         ns.tprint("Solved:");
         ns.tprint(solved);
         ns.tprint("Reward:");
-        ns.tprint(ns.codingcontract.attempt(solved, contract, server, { returnReward: true }));
+        ns.tprint(ns.codingcontract.attempt(solved.toString(), contract, server, { returnReward: true }));
     }
 
     function findLargestPrimeFactor(contract, server) {
@@ -183,7 +232,7 @@ export async function main(ns) {
 
         ns.tprint("Solved: " + inputNumber);
         ns.tprint("Reward:");
-        ns.tprint(ns.codingcontract.attempt(inputNumber, contract, server, { returnReward: true }));
+        ns.tprint(ns.codingcontract.attempt(inputNumber.toString(), contract, server, { returnReward: true }));
     }
 
     function algorithmicStockTraderI(contract, server) {
@@ -205,7 +254,7 @@ export async function main(ns) {
         ns.tprint("Solved:");
         ns.tprint(solved);
         ns.tprint("Reward:");
-        ns.tprint(ns.codingcontract.attempt(solved, contract, server, { returnReward: true }));
+        ns.tprint(ns.codingcontract.attempt(solved.toString(), contract, server, { returnReward: true }));
     }
 
     function shortestPathInAGrid(contract, server) {
@@ -264,7 +313,7 @@ export async function main(ns) {
         ns.tprint("Solved result:");
         ns.tprint(solved);
         ns.tprint("Reward:");
-        ns.tprint(ns.codingcontract.attempt(solved, contract, server, { returnReward: true }));
+        ns.tprint(ns.codingcontract.attempt(solved.toString(), contract, server, { returnReward: true }));
     }
 
     function compressionI(contract, server) {
@@ -291,7 +340,7 @@ export async function main(ns) {
         ns.tprint("Solved array:");
         ns.tprint(solved);
         ns.tprint("Reward:");
-        ns.tprint(ns.codingcontract.attempt(solved, contract, server, { returnReward: true }));
+        ns.tprint(ns.codingcontract.attempt(solved.toString(), contract, server, { returnReward: true }));
     }
 
     function subarrayWithMaximumSum(contract, server) {
@@ -314,7 +363,7 @@ export async function main(ns) {
         ns.tprint("Solved result:");
         ns.tprint(solved);
         ns.tprint("Reward:");
-        ns.tprint(ns.codingcontract.attempt(solved, contract, server, { returnReward: true }));
+        ns.tprint(ns.codingcontract.attempt(solved.toString(), contract, server, { returnReward: true }));
     }
 
     function uniquePathsInAGridI(contract, server) {
@@ -341,7 +390,7 @@ export async function main(ns) {
         ns.tprint("Solved result:");
         ns.tprint(solved);
         ns.tprint("Reward:");
-        ns.tprint(ns.codingcontract.attempt(solved, contract, server, { returnReward: true }));
+        ns.tprint(ns.codingcontract.attempt(solved.toString(), contract, server, { returnReward: true }));
     }
 
     function uniquePathsInAGridII(contract, server) {
@@ -366,7 +415,7 @@ export async function main(ns) {
         ns.tprint("Solved result:");
         ns.tprint(solved);
         ns.tprint("Reward:");
-        ns.tprint(ns.codingcontract.attempt(solved, contract, server, { returnReward: true }));
+        ns.tprint(ns.codingcontract.attempt(solved.toString(), contract, server, { returnReward: true }));
     }
 
     function mergeOverlappingIntervals(contract, server) {
@@ -436,6 +485,6 @@ export async function main(ns) {
         ns.tprint("Solved array:");
         ns.tprint(solved);
         ns.tprint("Reward:");
-        ns.tprint(ns.codingcontract.attempt(solved, contract, server, { returnReward: true }));
+        ns.tprint(ns.codingcontract.attempt(solved.toString(), contract, server, { returnReward: true }));
     }
 }

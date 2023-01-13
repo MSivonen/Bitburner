@@ -23,9 +23,6 @@ export async function main(ns) {
         buyPrograms: "/lib/buyPrograms.js"
     };
 
-    const shareServers = ns.gang.inGang() ? 7 : 0,
-        augsToInstall = 10;
-
     let tailObject = {
         task: "",
         grafting: "",
@@ -36,16 +33,26 @@ export async function main(ns) {
     let spendMoneyFunctions = [
         graftAug,
         buyServers
-    ]
+    ];
+
+    const
+        augsToInstall = 25;
+
+    let
+        doRestart = false,
+        augsBought = true,
+        shareServers = 2; //purchased servers amount divided by this
 
 
     copyFiles();
 
     while (true != !true) {
-        if (numAugsBought() < augsToInstall - 5)
-            for (const t of spendMoneyFunctions)
-                await t();
+        doRestart = restartBN("graftAll");
+        installAndReset();
+        for (const t of spendMoneyFunctions)
+            await t();
         await share();
+        hashes();
         await runSomewhere(allFiles.openPorts);
         if (!runningSomewhere(allFiles.buyPrograms))
             await runSomewhere(allFiles.buyPrograms);
@@ -53,11 +60,62 @@ export async function main(ns) {
         await ns.sleep(200);
     }
 
-    async function spendMoney() {
-        //buyHomeCores();
-        //donate();
-        graftAug();
-        buyServers();
+    function isGrafting() {
+        if (ns.singularity.getCurrentWork() != null)
+            if (ns.singularity.getCurrentWork().type == "GRAFTING") return true;
+    }
+
+    function installAndReset() {
+        if (!isGrafting()) {
+            if (!isGrafting() &&
+                doRestart &&
+                augsBought) {
+                ns.singularity.softReset("/bn4/starter.js");
+            }
+        }
+    }
+
+    function grindDaedalusRep() {
+
+        if (ns.singularity.getFactionRep("Daedalus") / ns.singularity.getAugmentationRepReq("The Red Pill") > 0.7)
+            return false;
+
+        if (ns.getBitNodeMultipliers().RepToDonateToFaction * 150 <= ns.singularity.getFactionFavor("Daedalus"))
+            return false;
+
+        const repMult = ns.getBitNodeMultipliers().RepToDonateToFaction;
+        const repToDonate = 150 * repMult; //off by one level of sf12 wtf
+        const numberOfResets = Math.floor(repToDonate / 100);
+        const repPerReset = Math.ceil(repToDonate / numberOfResets);
+
+        if (ns.singularity.getFactionFavorGain("Daedalus") >= repPerReset)
+            return true;
+    }
+
+    function restartBN(method) {
+        if (method == "graftAll") {
+            if (ns.singularity.getOwnedAugmentations(true).includes("The Red Pill") &&
+                !ns.singularity.getOwnedAugmentations(false).includes("The Red Pill"))
+                return true;
+
+            if (ns.singularity.getOwnedAugmentations().includes("nickofolas Congruity Implant") &&
+                ns.getTimeSinceLastAug() == ns.getPlayer().playtimeSinceLastBitnode) {
+                return true;
+            }
+            if (numAugsBought() >= augsToInstall) {
+                return true;
+            }
+
+            if (grindDaedalusRep())
+                return true;
+        }
+
+        return false;
+    }
+
+    function hashes() {
+        if (ns.getServerMoneyAvailable("home") < 50e6)
+            ns.hacknet.spendHashes("Sell for Money");
     }
 
     function updateTail() {
@@ -121,39 +179,44 @@ export async function main(ns) {
     }
 
     async function share() {
-        const allPservers = ns.getPurchasedServers();
-        for (let i = 1; i < Math.min(shareServers, allPservers.length / 2); i++) {
+        if (isGrafting() || ns.getServerMoneyAvailable("home") < 1e11) {
+            getServers(ns).forEach(s => ns.scriptKill(allFiles.share, s));
+            return;
+        }
+
+        let allPservers = ns.getPurchasedServers();
+        let shareServers_div = shareServers;
+        if (ns.getPlayer().factions.includes("Daedalus"))
+            shareServers_div = 1;
+        for (let i = 1; i < allPservers.length / shareServers_div; i++) {
             if (!ns.fileExists(allFiles.share, allPservers[i]))
-                await ns.scp(allFiles.share, allPservers[i]);
+                ns.scp(allFiles.share, allPservers[i]);
             const threads = Math.floor(ns.getServerMaxRam(allPservers[i]) / ns.getScriptRam(allFiles.share, allPservers[i]));
-            if (threads) ns.exec(allFiles.share, allPservers[i], threads);
+            if (threads) ns.exec(allFiles.share, allPservers[i], threads, Math.random());
         }
     }
 
-    function graftAug(type = "rep") {
-        let augs = getGrafableAugs(type);
-        if (augs.length < 2 || ns.gang.inGang()) {
-            augs = getGrafableAugs("hacking");
-            if (augs.length < 4) augs = [];
-        }
-        if (ns.getBitNodeMultipliers().HackingLevelMultiplier * ns.getPlayer().mults.hacking > 12) {
-            if (getGrafableAugs(type).includes("nickofolas Congruity Implant"))
-                augs = ["nickofolas Congruity Implant"];
-            else
-                return;
-        }
+    function graftAug(type = "hacking") {
+        if (ns.getPlayer().factions.includes("Daedalus")) type = "rep";
+        if (ns.singularity.getOwnedAugmentations(false).includes("The Red Pill"))
+            return;
+        //let augs = getGrafableAugs(type);
+
+
+        let augs = [...getGrafableAugs("hacking"), ...getGrafableAugs("rep")];
         tailObject.graftables = "";
 
-        for (const a of augs) {
-            let stats = "";
-            const price = ns.nFormat(ns.grafting.getAugmentationGraftPrice(a), "0.00a");
+        if (augs)
+            for (const a of augs) {
+                let stats = "";
+                const price = ns.nFormat(ns.grafting.getAugmentationGraftPrice(a), "0.00a");
 
-            for (const s of Object.entries(filterObject(ns.singularity.getAugmentationStats(a), (k, v) =>
-                (k.startsWith("hacki") || k.startsWith("factio")) && v > 1))) {
-                stats += col.g + "\t\t" + s[0] + ": " + col.w + s[1] + "\n";
+                for (const s of Object.entries(filterObject(ns.singularity.getAugmentationStats(a), (k, v) =>
+                    (k.startsWith("hacki") || k.startsWith("factio")) && v > 1))) {
+                    stats += col.g + "\t\t" + s[0] + ": " + col.w + s[1] + "\n";
+                }
+                tailObject.graftables += col.w + "\t" + a + ": " + col.y + price + col.w + "\n" + stats;
             }
-            tailObject.graftables += col.w + "\t" + a + ": " + col.y + price + col.w + "\n" + stats;
-        }
 
 
         if (isGrafting()) {
@@ -165,7 +228,7 @@ export async function main(ns) {
             Object.entries(stats).forEach(s => tailObject.grafting += col.g + "\t\t" + s[0] + " " + col.w + s[1] + "\n");
             return;
         }
-        if (!augs) return;
+        if (!augs || augs.length == 0) return;
 
         let lowestPrice = augs.reduce((a, b) => ns.grafting.getAugmentationGraftPrice(b) > ns.grafting.getAugmentationGraftPrice(a) ? a : b);
 
@@ -200,6 +263,7 @@ export async function main(ns) {
     }
 
     function buyServers(maxMoney = 1e12) {
+        maxMoney = Math.max(1e12, ns.getServerMoneyAvailable("home") * .2);
         if (ns.getPurchasedServerLimit() == 0) return;
 
         while (ns.getPurchasedServers().length < ns.getPurchasedServerLimit()) {

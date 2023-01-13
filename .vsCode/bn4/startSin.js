@@ -25,16 +25,16 @@ export async function main(ns) {
 	/**Path for dynamic scripts */
 	const path = "/bn4/dynScripts/",
 		logPort = ns.getPortHandle(1),
-		wantGang = true,
+		wantGang = false,
 		timeToWaitForAugs = 300 * 1000,
-		augInstallTimer = 60000 * 400, //400min
+		augInstallTimer = 60000 * 2000, //400min
 		firstRun = ns.getTimeSinceLastAug() == ns.getPlayer().playtimeSinceLastBitnode,
-		wantAugNum = 6,
-		nextBN = 1,
-		contractDelay = 60 * 21 * 1000;
+		wantAugNum = 99,
+		nextBN = 12,
+		contractDelay = 60 * 11 * 1000;
 
-		if (ns.getServer().hostname != "home")
-		await ns.scp("g_settings.txt", ns.getServer().hostname, "home");
+	if (ns.getServer().hostname != "home")
+		ns.scp("g_settings.txt", ns.getServer().hostname, "home");
 
 	let g_sets = readFromJSON(ns, "g_settings.txt"),
 		wantAugsInstalled = g_sets.wantAugsInstalled,
@@ -193,14 +193,17 @@ export async function main(ns) {
 	while (true) {
 		//if (!startScriptsRunned && startTime + 3000 < ns.getTimeSinceLastAug())
 		//runStartScripts();
-		await updateSettings();
+		updateSettings();
+		if (ns.singularity.isBusy())
+			if (focusOnWork)
+				ns.singularity.setFocus(true);
 		if (!overrideVars) {
 			if (ns.getHackingLevel() > 1000 && g_sets.wantJobs) wantJobs = true;
 			else wantJobs = false;
 		}
 		while (paused) {
 			await ns.sleep(100);
-			await updateSettings();
+			updateSettings();
 		}
 		if (prevTime + 1000 < ns.getTimeSinceLastAug()) {
 			if (contractTimer + contractDelay < ns.getTimeSinceLastAug()) {
@@ -230,7 +233,7 @@ export async function main(ns) {
 			await copyProgs();
 			runFunc("joinFactions");
 			runFunc("backdoors");
-			//runFunc("endBN", nextBN);
+			runFunc("endBN", nextBN);
 			prevTime = ns.getTimeSinceLastAug();
 		}
 		await idle();
@@ -241,9 +244,9 @@ export async function main(ns) {
 		await ns.sleep(15);
 	}
 
-	async function updateSettings() {
+	function updateSettings() {
 		if (ns.getServer().hostname != "home")
-			await ns.scp("g_settings.txt", ns.getServer().hostname, "home");
+			ns.scp("g_settings.txt", ns.getServer().hostname, "home");
 		g_sets = readFromJSON(ns, "g_settings.txt");
 		wantAugsInstalled = g_sets.wantAugsInstalled,
 			wantBuyAugs = g_sets.wantBuyAugs,
@@ -375,7 +378,7 @@ export async function main(ns) {
 	async function copyProgs() {
 		for (let serv of getServers(ns)) {
 			for (let file of files) {
-				try { await ns.scp(file, serv); }
+				try { ns.scp(file, serv); }
 				catch { ns.alert("Error in startSin.js line 321 while copying " + file + " to " + serv) }
 				await ns.sleep(5);
 			}
@@ -450,7 +453,9 @@ export async function main(ns) {
 			boughtAug += 99;
 		if (wantAugsInstalled) {
 			if ((firstRun && doRestart) ||
-				(!firstRun && (boughtAug >= wantAugNum || (boughtAug > 0 && ns.getTimeSinceLastAug() > augInstallTimer)))) {
+				(!firstRun && (boughtAug >= wantAugNum ||
+					(boughtAug > 0 && ns.getTimeSinceLastAug() > augInstallTimer) ||
+					firstRun && ns.singularity.getOwnedAugmentations().includes("nickofolas Congruity Implant")))) {
 				doRestart = true;
 				if (timer + timeToWaitForAugs < ns.getTimeSinceLastAug()) {
 					if (ns.singularity.getCurrentWork() != null)

@@ -16,12 +16,12 @@ export async function main(ns) {
         if (ns.sleeve.getInformation(slvNum).city != city)
             if (!ns.sleeve.travel(slvNum, city)) {
                 logA.push("ERROR not enough money for sleeve " + slvNum + " to travel to " + city);
-                logPort.write("ERROR not enough money for sleeve " + slvNum + " to travel to " + city);
+                //logPort.write("ERROR not enough money for sleeve " + slvNum + " to travel to " + city);
             }
     }
 
-    const logPort = ns.getPortHandle(1);
-    const sleevePort = ns.getPortHandle(2);
+    //const logPort = ns.getPortHandle(1);
+    //const sleevePort = ns.getPortHandle(2);
 
     while (true) {
         g_sets = readFromJSON(ns, "g_settings.txt");
@@ -59,8 +59,8 @@ export async function main(ns) {
                 continue;
             }
 
-
-            if (!ns.gang.inGang() && ns.getPlayer().bitNodeN != 8) {
+            //GANG HOMICIDE REMOVED
+            if (false && !ns.gang.inGang() && ns.getPlayer().bitNodeN != 8) {
                 let agi = 60, str = 70, dex = 60, def = 60;
 
                 if (ns.sleeve.getSleeveStats(slvNum).strength < str) {
@@ -94,11 +94,22 @@ export async function main(ns) {
                 continue;
             }
 
-            else if (ns.gang.inGang() || ns.getPlayer().bitNodeN == 8) {
+            else {
                 if (ns.sleeve.getSleeveStats(slvNum).hacking < 30) {
                     travel(slvNum, "Volhaven");
                     ns.sleeve.setToUniversityCourse(slvNum, "ZB Institute of Technology", "Algorithms");
                     sleeveText[slvNum] = "Sleeve" + slvNum + " is studying algorithms";
+                    continue;
+                }
+
+                let sleeveFaction = "Nope";
+                sleeveFaction = getBestFaction(ns, excludedFactions).faction;
+                if (!excludedFactions.includes("NiteSec") && firstRun) sleeveFaction = "NiteSec";
+                if (sleeveFaction != "Nope" && sleeveFaction != null) {
+                    if (!ns.sleeve.setToFactionWork(slvNum, sleeveFaction, "hacking contracts"))
+                        ns.sleeve.setToFactionWork(slvNum, sleeveFaction, "field work");
+                    excludedFactions.push(sleeveFaction);
+                    sleeveText[slvNum] = "Sleeve " + slvNum + " faction work: " + sleeveFaction;
                     continue;
                 }
 
@@ -136,16 +147,7 @@ export async function main(ns) {
                     if (gotJob) continue;
                 }
 
-                let sleeveFaction = "Nope";
-                sleeveFaction = getBestFaction(ns, excludedFactions).faction;
-                if (!excludedFactions.includes("NiteSec") && firstRun) sleeveFaction = "NiteSec";
-                if (sleeveFaction != "Nope" && sleeveFaction != null) {
-                    if (!ns.sleeve.setToFactionWork(slvNum, sleeveFaction, "hacking contracts"))
-                        ns.sleeve.setToFactionWork(slvNum, sleeveFaction, "field work");
-                    excludedFactions.push(sleeveFaction);
-                    sleeveText[slvNum] = "Sleeve " + slvNum + " faction work: " + sleeveFaction;
-                    continue;
-                }
+
             }
             if (ns.sleeve.getSleeveStats(slvNum).sync < 100) {
                 ns.sleeve.setToSynchronize(slvNum);
@@ -192,13 +194,13 @@ export async function main(ns) {
                     if (moneyAvail > 0) {
                         for (let aug of canBuy) {
                             ns.sleeve.purchaseSleeveAug(slave, Object.values(aug)[0]);
-                            logPort.write("Bought " + Object.values(aug)[0] + " for sleeve " + slave);
+                            //logPort.write("Bought " + Object.values(aug)[0] + " for sleeve " + slave);
                         }
                     }
                 }
             }
         }
-        sleevePort.write(sleeveText);
+        //sleevePort.write(sleeveText);
         await ns.sleep(5000);
     }
 }

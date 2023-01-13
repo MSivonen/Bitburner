@@ -4,32 +4,32 @@
 			"path": ".vsCode/ver6/ver6.js",
 			"bookmarks": [
 				{
-					"line": 63,
+					"line": 64,
 					"column": 52,
 					"label": "MAIN LOOP"
 				},
 				{
-					"line": 125,
+					"line": 129,
 					"column": 21,
 					"label": "updateTail()"
 				},
 				{
-					"line": 151,
+					"line": 155,
 					"column": 10,
 					"label": "updateServers()"
 				},
 				{
-					"line": 185,
+					"line": 197,
 					"column": 32,
 					"label": "initializeTarget(targ)"
 				},
 				{
-					"line": 259,
+					"line": 268,
 					"column": 22,
 					"label": "badger(targ)"
 				},
 				{
-					"line": 434,
+					"line": 443,
 					"column": 83,
 					"label": "buyServers(moneyToSpend = 2, maxRam = ns.getPurchasedServerMaxRam()"
 				}
@@ -49,22 +49,22 @@
 					"label": "==MAIN LOOP=="
 				},
 				{
-					"line": 254,
+					"line": 257,
 					"column": 20,
 					"label": "updateTail()"
 				},
 				{
-					"line": 282,
+					"line": 285,
 					"column": 33,
 					"label": "writeScript(func)"
 				},
 				{
-					"line": 290,
+					"line": 293,
 					"column": 22,
 					"label": "idle()"
 				},
 				{
-					"line": 494,
+					"line": 499,
 					"column": 27,
 					"label": "doHacking()"
 				}
@@ -79,52 +79,47 @@
 					"label": ""
 				},
 				{
-					"line": 58,
+					"line": 57,
 					"column": 8,
 					"label": ""
 				},
 				{
-					"line": 64,
+					"line": 63,
 					"column": 14,
 					"label": ""
 				},
 				{
-					"line": 74,
-					"column": 11,
-					"label": ""
-				},
-				{
-					"line": 124,
+					"line": 113,
 					"column": 10,
 					"label": ""
 				},
 				{
-					"line": 133,
+					"line": 122,
 					"column": 16,
 					"label": ""
 				},
 				{
-					"line": 150,
+					"line": 139,
 					"column": 10,
 					"label": ""
 				},
 				{
-					"line": 177,
+					"line": 164,
 					"column": 84,
 					"label": "==MAIN LOOP=="
 				},
 				{
-					"line": 208,
+					"line": 195,
 					"column": 17,
 					"label": ""
 				},
 				{
-					"line": 222,
+					"line": 209,
 					"column": 20,
 					"label": ""
 				},
 				{
-					"line": 89,
+					"line": 78,
 					"column": 1,
 					"label": ""
 				}

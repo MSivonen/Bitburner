@@ -39,7 +39,7 @@ export async function main(ns) {
 	let crimes = ["Mug People", "Deal Drugs", "Strongarm Civilians", "Run a Con", "Armed Robbery", "Traffick Illegal Arms", "Threaten & Blackmail", "Human Trafficking", "Terrorism"];
 	let niceThings = ["Vigilante Justice", "Vigilante Justice"]; //two of these, because of random selection and I'm lazy
 	let wanted = 0;
-	let warFareTimer = { temp: ns.gang.getOtherGangInformation().Tetrads.power, detected: 0 };
+	let warFareTimer = { temp: ns.gang.getOtherGangInformation()["The Black Hand"].power, detected: 0 };
 	ns.clearLog();
 	class Member {
 		constructor(name, role = "empty", startTime = randomInt(5000)) {
@@ -49,7 +49,6 @@ export async function main(ns) {
 			this.hacking = ns.gang.getMemberInformation(this.name).hack;
 			this.role = this.hacking + this.str > 100 ? role : "newRole";
 			this.prevAscend = ns.getTimeSinceLastAug() - 10000;
-			this.checkRole();
 			this.startTime = startTime;
 			this.prevChange = this.startTime + ns.getTimeSinceLastAug();
 			this.ownedEquipmentA = [];
@@ -64,23 +63,13 @@ export async function main(ns) {
 
 		async ascend() {
 			if (this.prevAscend + 10000 < ns.getTimeSinceLastAug()) {
+				if (!ns.gang.getAscensionResult(this.name)) return;
 				if (ns.gang.getAscensionResult(this.name).hack > 1.2 || ns.gang.getAscensionResult(this.name).str > 1.2) {
 					ns.gang.ascendMember(this.name);
 					ns.print(this.name + " ascended");
 					this.prevAscend = ns.getTimeSinceLastAug();
 				}
 			}
-		}
-
-		checkRole() {
-			/*for (let i = 0; i < memberNames.length; i++) { //some old shit used with hacking gangs...
-				if (this.name == memberNames[i]) {
-					if (i % 3 == 0) {
-						this.role = "muscle";
-					} else this.role = "hacker";
-				}
-			}*/
-			this.role = "muscle"
 		}
 
 		setTask() {
@@ -139,11 +128,11 @@ export async function main(ns) {
 			let tempArr = [];
 			for (let equ of allEquipmentsOA) {
 				if ((equ.type == "Rootkit" || equ.type == "Augmentation")
-					&& this.role == "hacker"
+					//&& this.role == "hacker"
 					&& !this.ownedEquipmentA.find(e => { return e == equ.name })) {
 					tempArr.push(equ.name);
 				} else if ((equ.type == "Weapon" || equ.type == "Armor" || equ.type == "Vehicle" || equ.type == "Augmentation")
-					&& this.role == "muscle"
+					//&& this.role == "muscle"
 					&& !this.ownedEquipmentA.find(e => { return e == equ.name }))
 					tempArr.push(equ.name);
 			}
@@ -152,7 +141,6 @@ export async function main(ns) {
 
 		showInfo() {
 			ns.tprint(this.name);
-			ns.tprint(this.role);
 			ns.tprint("hacking: " + ns.gang.getMemberInformation(this.name).hack);
 			ns.tprint("strength: " + ns.gang.getMemberInformation(this.name).str);
 		}
@@ -160,7 +148,6 @@ export async function main(ns) {
 
 
 	ns.disableLog("ALL");
-	//let memberNames = ns.gang.getMemberNames();
 	let members = [];
 	let allEquipmentsOA = [];
 
@@ -199,10 +186,10 @@ export async function main(ns) {
 
 	function warfare() {
 		if (warFareTimer.detected == 0) {
-			if (warFareTimer.temp != ns.gang.getOtherGangInformation().Tetrads.power) {
+			if (warFareTimer.temp != ns.gang.getOtherGangInformation()["The Black Hand"].power) {
 				warFareTimer.detected = ns.getTimeSinceLastAug();
 			}
-			else warFareTimer.temp = ns.gang.getOtherGangInformation().Tetrads.power;
+			else warFareTimer.temp = ns.gang.getOtherGangInformation()["The Black Hand"].power;
 		}
 
 		let otherGangs = ns.gang.getOtherGangInformation();
@@ -214,7 +201,7 @@ export async function main(ns) {
 				winPerc = Math.min(tempWinPerc, winPerc);
 			}
 		}
-		if (winPerc > 0.55) ns.gang.setTerritoryWarfare(true);
+		if (winPerc > 0.45) ns.gang.setTerritoryWarfare(true);
 		else ns.gang.setTerritoryWarfare(false);
 	}
 

@@ -213,7 +213,7 @@ export function connecter(ns, targ) {
 }
 
 export function printArray(ns, thisArray, log = "terminal") {
-	let printFunc = ns.tprint;
+	let printFunc = ns.tprint.bind(ns);
 	if (log == "tail") printFunc = ns.print;
 
 	if (typeof thisArray == "number") {
@@ -275,17 +275,6 @@ export const getServers = (ns, a = new Set(["home"])) => {
 	return [...a];
 };
 
-/**@param {NS} ns @return {array} Array with server names that have more than 3GB of ram */
 export const getServersWithRam = (ns, ram = 3) => getServers(ns).filter(a => ns.getServerMaxRam(a) >= ram);
 
-
-/** @param {NS} ns @return {array} Array with server names that have money*/
-export function getServersWithMoney(ns, targetArray = []) {
-	let servers = getServers(ns);
-	for (let i = 0; i < servers.length; i++) {
-		if (ns.getServerMaxMoney(servers[i]) > 1000 && servers[i] != "home" && servers[i] != "fulcrumassets") {
-			targetArray.push(servers[i]);
-		}
-	}
-	return targetArray;
-}
+export const getServersWithMoney = (ns) => getServers(ns).filter(s => s != "Home" && ns.getServerMaxMoney(s));

@@ -1,5 +1,5 @@
 import {
-    printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,
+    printArray, openPorts, objectArraySort, getServers, getServersWithRam, getServersWithMoney,col,
     secondsToHMS, killAllButThis, connecter, randomInt, map, readFromJSON, writeToJSON, openPorts2, getBestFaction
 }
     from '/lib/includes.js'
@@ -7,11 +7,9 @@ import {
 /** @param {NS} ns */
 /** @param {import('../.').NS} ns */
 export async function main(ns) {
+    ns.stanek.acceptGift();
     let file;
     const path = "/stanek/" + ns.stanek.giftWidth() + "x" + ns.stanek.giftHeight() + "/";
-
-    ns.stanek.acceptGift();
-
     if (ns.args.length == 0) {
         file = await ns.prompt("Select file to load", {
             type: "select",

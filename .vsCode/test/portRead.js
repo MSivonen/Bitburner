@@ -16,12 +16,12 @@ import { map } from '/lib/includes.js'
 /** @param {NS} ns */
 /** @param {import('../.').NS} ns */
 export async function main(ns) {
-    let port = ns.getPortHandle(3); //x = 1-20
-    while (true) {
-        while (!port.empty()) {
-            ns.tprint(port.read());
-            await ns.sleep(100);
-        }
+    ns.tail(); ns.disableLog("ALL");
+    let test;
+    while (1) {
         await ns.sleep(100);
+        ns.clearLog();
+        test = ns.peek(123);
+        ns.print(test);
     }
 }
